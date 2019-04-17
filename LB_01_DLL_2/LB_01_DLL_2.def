@@ -1,0 +1,4 @@
+LIBRARY LB_01_DLL_2.dll
+EXPORTS 
+	getBin @1
+	SenseOfExisting @2

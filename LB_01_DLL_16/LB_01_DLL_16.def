@@ -1,0 +1,4 @@
+LIBRARY LB_01_DLL_16.dll
+EXPORTS 
+	getHex @1
+	SenseOfExisting @2

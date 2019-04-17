@@ -1,0 +1,4 @@
+LIBRARY LB_01_DLL_8.dll
+EXPORTS 
+	getOct @1
+	SenseOfExisting @2

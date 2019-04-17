@@ -1,0 +1,4 @@
+LIBRARY LB_01_DLL_3.dll
+EXPORTS 
+	getThree @1
+	SenseOfExisting @2
