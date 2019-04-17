@@ -1,7 +1,7 @@
 #include "LB_02.h"
 #include "stdio.h"
 
-int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpszCmdLine, int nCmdShow)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpszCmdLine, int nCmdShow)
 {
 	MSG msg;
 	HWND hWnd;
@@ -12,41 +12,48 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpsz
 
 	if (hWnd == NULL) return FALSE;
 
-	HACCEL hAccel;
-	hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
-
-
 	g_hwndDlg = (HWND)0;
+	g_hInst = hInstance;
 
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		if (g_hwndDlg == 0 || !IsDialogMessage(g_hwndDlg, &msg))
+		if (!TranslateMDISysAccel(g_hMDIClientWnd, &msg))
 		{
-			if (!TranslateAccelerator(hWnd, hAccel, &msg))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
 	}
 	return (int)msg.wParam;
 }
 
-LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
 		HANDLE_MSG(hWnd, WM_COMMAND, km_OnCommand);				// Комманды
-		HANDLE_MSG(hWnd, WM_MENUSELECT, km_OnMenuSelect);		// Смена меню
 		HANDLE_MSG(hWnd, WM_CLOSE, km_OnClose);					// Закрытие окна
-		HANDLE_MSG(hWnd, WM_LBUTTONDOWN, km_OnLButtonDown);		// Левая кнопка мыши нажата
-		HANDLE_MSG(hWnd, WM_RBUTTONDOWN, km_OnRButtonDown);		// Правая кнопка мыши нажата
+		HANDLE_MSG(hWnd, WM_SIZE, km_OnSize);					// Закрытие окна
 		HANDLE_MSG(hWnd, WM_CREATE, km_OnCreate);				// Создание окна
-		HANDLE_MSG(hWnd, WM_PAINT, km_OnPaint);					// Перерысовывание окна
+		//HANDLE_MSG(hWnd, WM_PAINT, km_OnPaint);					// Перерысовывание окна
 		HANDLE_MSG(hWnd, WM_DESTROY, km_OnDestroy);				// Разружение окна
 	}
 
-	return DefWindowProc(hWnd, msg, wParam, lParam);
+	return	DefFrameProc(hWnd, g_hMDIClientWnd, msg, wParam, lParam);
+}
+
+LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message)
+	{
+		HANDLE_MSG(hWnd, WM_COMMAND, km_OnChildCommand);				// Комманды
+		//HANDLE_MSG(hWnd, WM_CLOSE, km_OnChildClose);					// Закрытие окна
+		HANDLE_MSG(hWnd, WM_CREATE, km_OnChildCreate);				// Создание окна
+		HANDLE_MSG(hWnd, WM_MDIACTIVATE, km_OnChildActivate);		// Активация окна
+		HANDLE_MSG(hWnd, WM_SIZE, km_OnChildSize);
+		HANDLE_MSG(hWnd, WM_SETFOCUS, km_OnChildSetFocus);			// получение фокуса окна
+		//HANDLE_MSG(hWnd, WM_DESTROY, km_OnDestroy);				// Разружение окна
+	}
+	return DefMDIChildProc(hWnd, message, wParam, lParam);
 }
 
 
@@ -56,19 +63,16 @@ BOOL Register(HINSTANCE hInst)
 
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
 	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.lpszClassName = g_lpszClassName;
-	wc.lpfnWndProc = Pr2_WndProc;
-	wc.style = CS_VREDRAW | CS_HREDRAW;
-	wc.hInstance = hInst;
-	wc.hIcon = LoadIcon(hInst, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(hInst, IDC_ARROW);
-	//HBRUSH hbr;
-	//hbr = CreateSolidBrush();
-	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW);
-
-	wc.lpszMenuName = NULL;
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.lpfnWndProc = MainWndProc;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
+	wc.hInstance = hInst;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)(COLOR_3DSHADOW + 1);
+	wc.lpszClassName = g_lpszClassName;
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
 	if (!RegisterClassEx(&wc))
 	{
@@ -77,28 +81,35 @@ BOOL Register(HINSTANCE hInst)
 		return FALSE;
 	}
 
+
+	wc.lpfnWndProc = ChildWndProc;
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = g_lpszChildClassName;
+	wc.hbrBackground = (HBRUSH)(COLOR_3DFACE + 1);
+
+	if (!RegisterClassEx(&wc))
+	{
+		MessageBox(NULL, TEXT("Ошибка регистрации MDI класса"),
+			TEXT("Ошибка"), MB_OK | MB_ICONERROR);
+		return FALSE;
+	}
+
+
 	return TRUE;
 }
 
 HWND Create(HINSTANCE hInstance, int nCmdShow)
 {
 	DWORD Stl;
-	Stl = WS_OVERLAPPEDWINDOW ^ WS_MAXIMIZEBOX;
+	Stl = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
 
 	g_lpszMainMenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MENU1));
 
-	HWND hWnd = CreateWindowEx(NULL /*| WS_EX_TRANSPARENT*/, g_lpszClassName,
-		g_lpszAplicationTitle,
-		Stl,
-		200,
-		200,
-		500,
-		250,
-		NULL,
-		g_lpszMainMenu,
-		hInstance,
-		NULL
-	);
+
+	HWND hWnd = CreateWindowEx(WS_EX_APPWINDOW, g_lpszClassName,
+		"MDI File Editor", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		0, g_lpszMainMenu, hInstance, NULL);
 
 	if (!hWnd)
 	{
@@ -106,6 +117,8 @@ HWND Create(HINSTANCE hInstance, int nCmdShow)
 			TEXT("Ошибка"), MB_OK | MB_ICONERROR);
 		return NULL;
 	}
+
+	g_hMainWnd = hWnd;
 
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
@@ -118,38 +131,129 @@ HWND Create(HINSTANCE hInstance, int nCmdShow)
 // WM_CREATE
 BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 {
-	//MessageBox(hWnd, TEXT("WM_CREATE"), g_lpszDestroyTitle, MB_OK | MB_ICONEXCLAMATION);
-
 	g_lpszFileMenu = GetSubMenu(g_lpszMainMenu, 0);
 	g_lpszViewMenu = GetSubMenu(g_lpszMainMenu, 1);
 
+	////////////////////////////////////////
+	CLIENTCREATESTRUCT ccs;
+	memset(&ccs, 0, sizeof(CLIENTCREATESTRUCT));
 
+	// Find window menu where children will be listed
+	ccs.hWindowMenu = g_lpszViewMenu;
+	ccs.idFirstChild = ID_MDI_FIRSTCHILD;
+	g_hMDIClientWnd = CreateWindowEx(WS_EX_CLIENTEDGE, "mdiclient", NULL,
+		WS_CHILD | WS_CLIPCHILDREN | WS_VSCROLL | WS_HSCROLL,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		hWnd, (HMENU)ID_MDI_CLIENT, g_hInst, (LPVOID)&ccs);
+
+	if (!g_hMDIClientWnd)
+		return FALSE;
+
+	ShowWindow(g_hMDIClientWnd, SW_SHOW);
+
+
+	return TRUE;
+}
+
+// WM_SIZE
+void km_OnSize(HWND hWnd, UINT wSizeType, SHORT cx, SHORT cy)
+{
+	RECT rectClient;
+	UINT uClientAlreaHeight;
+
+	GetClientRect(hWnd, &rectClient);
+	uClientAlreaHeight = rectClient.bottom;
+
+	MoveWindow(g_hMDIClientWnd, 0, 0, rectClient.right, uClientAlreaHeight, TRUE);
+
+	//DefFrameProc(hWnd, g_hMDIClientWnd, 0, (WPARAM)wSizeType, MAKELPARAM(cx, cy));
+}
+
+
+// WM_ONPAINT
+void km_OnPaint(HWND hWnd)
+{
+	PAINTSTRUCT ps;
+	HDC hDC = BeginPaint(hWnd, &ps);
 	RECT rc;
 	GetClientRect(hWnd, &rc);
 
+	EndPaint(hWnd, &ps);
+}
+
+// WM_ONCLOSE
+void km_OnClose(HWND hWnd)
+{
+	DestroyWindow(hWnd);
+}
+
+// WM_DESTROY
+void km_OnDestroy(HWND hWnd)
+{
+	PostQuitMessage(0);
+}
+
+// WM_COMMAND
+void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
+{
+	TCHAR buff[200];
+	DWORD dwNumbOfBytes = MAX_BYTES;
+	wsprintf(buff, TEXT("%d"), id);
+
+	switch (id)
+	{
+	case IDM_FILE_EXIT:
+	{
+		MDICREATESTRUCT mcs;
+		HWND hChild;
+
+		mcs.szTitle = "[Untitled]";
+		mcs.szClass = g_lpszChildClassName;
+		mcs.hOwner = g_hInst;
+		mcs.x = mcs.cx = CW_USEDEFAULT;
+		mcs.y = mcs.cy = CW_USEDEFAULT;
+		mcs.style = MDIS_ALLCHILDSTYLES;
+
+		hChild = (HWND)SendMessage(g_hMDIClientWnd, WM_MDICREATE,
+			0, (LPARAM)&mcs);
+		if (!hChild)
+		{
+			MessageBox(hWnd, "MDI Child creation failed.", "Oh Oh...",
+				MB_ICONEXCLAMATION | MB_OK);
+		}
+
+	}
+	break;
+	case IDM_HELP_ABOUT:
+	{
+		DialogBox((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), MAKEINTRESOURCE(IDD_DIALOG1), hWnd, (DLGPROC)ModAboutDlgProc);
+	}
+	break;
+	default:
+	{
+		if (id >= ID_MDI_FIRSTCHILD) {
+			DefFrameProc(hWnd, g_hMDIClientWnd, 0, (WPARAM)hwndCtl, (LPARAM)id);
+		}
+		else {
+			HWND hChild;
+			hChild = (HWND)SendMessage(g_hMDIClientWnd, WM_MDIGETACTIVE, 0, 0);
+			if (hChild) {
+				SendMessage(hChild, WM_COMMAND, (WPARAM)hwndCtl, (LPARAM)id);
+			}
+		}
+	}
+	break;
+	}
+}
 
 
-	//SetLayeredWindowAttributes(hWnd, RGB(0, 0, 0), 200, LWA_COLORKEY | LWA_ALPHA);
-
-	//int x1, y1, x2, y2;
-	//RECT rect;
-	//POINT pointtop, pointbottom;
-
-	//GetClientRect(hWnd, &rect);
-	////Get The Coordinates of the Window.
-	//
-	//pointtop = { rect.left,rect.top };
-	//pointbottom = { rect.right, rect.bottom };
-
-	////Break the Coordinates into four different variables.
-	//x1 = pointtop.x;
-	//y1 = pointtop.y;
-	//x2 = pointbottom.x;
-	//y2 = pointbottom.y;
-
-
-	//HRGN region = CreateRoundRectRgn(x1, y1, x2, y2 , 50,50);
-	//SetWindowRgn(hWnd, region, TRUE);
+////////////////////////////////////////
+//////////////////////////////////////////
+// WM_CREATE
+BOOL km_OnChildCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
+{
+	RECT rc;
+	GetClientRect(hWnd, &rc);
 
 
 	g_hEdit = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT, rc.left + 10, rc.top + 10, 150, 20, hWnd, (HMENU)IDC_EDIT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
@@ -169,10 +273,6 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	Button_Enable(g_hRadioThree, FALSE);
 	Button_Enable(g_hRadioOct, FALSE);
 	Button_Enable(g_hRadioHex, FALSE);
-
-	//CheckRadioButton(g_hRadioBin, IDC_RADIO_BIN, IDC_RADIO_HEX, IDC_RADIO_BIN);
-	//Button_SetCheck(g_hRadioBin, BM_SETCHECK);
-
 
 	HANDLE  hFindFile;
 	WIN32_FIND_DATA  fd;
@@ -240,11 +340,7 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 			}
 		}
 
-		//TCHAR stringText[100];
-		//sprintf_s(stringText, 100, TEXT("Файл найден - %s"), fd.cFileName);
-		//MessageBox(hWnd, stringText, TEXT("Успех"), MB_OK);
-	} 
-	while (FindNextFile(hFindFile, &fd));
+	} while (FindNextFile(hFindFile, &fd));
 
 	if (getBin != NULL)
 	{
@@ -270,66 +366,60 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	return TRUE;
 }
 
-// WM_LBUTTONDOWN
-void  km_OnLButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+// WM_MDIACTIVATE
+BOOL km_OnChildActivate(HWND hWnd, BOOL bActive, HWND hWndActive, HWND hWndDeactive)
 {
+	HMENU hMenu, hFileMenu;
+	BOOL EnableFlag;
+	char szFileName[MAX_PATH];
+
+	hMenu = GetMenu(g_hMainWnd);
+	if (hWnd == hWndActive) {      //being activated
+		EnableFlag = TRUE;
+	}
+	else {
+		EnableFlag = FALSE;    //being de-activated
+	}
+
+	//DrawMenuBar(g_hMainWnd);
+
+	return TRUE;
 }
 
-// WM_RBUTTONDOWN
-void  km_OnRButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+// WM_SIZE 
+void km_OnChildSize(HWND hWnd, UINT wSizeType, SHORT cx, SHORT cy)
 {
+	if (wSizeType != SIZE_MINIMIZED)
+		MoveWindow(GetDlgItem(hWnd, IDC_CHILD_EDIT), 0, 0,cx,cy, TRUE);
+
+	DefMDIChildProc(hWnd, WM_SIZE, (WPARAM)wSizeType, MAKELPARAM(cx, cy));
 }
 
 // WM_ONPAINT
-void km_OnPaint(HWND hWnd)
+void km_OnChildPaint(HWND hWnd)
 {
 	PAINTSTRUCT ps;
 	HDC hDC = BeginPaint(hWnd, &ps);
 	RECT rc;
 	GetClientRect(hWnd, &rc);
 
-	//int x1, y1, x2, y2;
-	//POINT pointtop, pointbottom;
-	////Get The Coordinates of the Window.
-
-	//pointtop = { rc.left,rc.top };
-	//pointbottom = { rc.right, rc.bottom };
-
-	////Break the Coordinates into four different variables.
-	//x1 = pointtop.x;
-	//y1 = pointtop.y;
-	//x2 = pointbottom.x;
-	//y2 = pointbottom.y;
-
-
-	//HRGN region = CreateRoundRectRgn(x1, y1, x2, y2, 50, 50);
-	//SetWindowRgn(hWnd, region, TRUE);
-
-	//SetWindowPos(g_hEdit, HWND_TOP, rc.left, rc.top, rc.right, rc.bottom - 50, NULL);
 	EndPaint(hWnd, &ps);
 }
 
 // WM_ONCLOSE
-void km_OnClose(HWND hWnd)
+void km_OnChildClose(HWND hWnd)
 {
 	DestroyWindow(hWnd);
 }
 
-// WM_MENUSELECT
-void km_OnMenuSelect(HWND hWnd, HMENU hmenu, int item, HMENU hmenuPopup, UINT flags)
-{
-}
-
 // WM_DESTROY
-void km_OnDestroy(HWND hWnd)
+void km_OnChildDestroy(HWND hWnd)
 {
-	//MessageBox(hWnd, g_lpszDestroyMessage, g_lpszDestroyTitle, MB_OK | MB_ICONEXCLAMATION);
-
 	PostQuitMessage(0);
 }
 
 // WM_COMMAND
-void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
+void km_OnChildCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 {
 	TCHAR buff[200];
 	DWORD dwNumbOfBytes = MAX_BYTES;
@@ -337,11 +427,6 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	switch (id)
 	{
-	case IDM_FILE_EXIT:
-	{
-		DestroyWindow(hWnd);
-	}
-	break;
 	case IDC_BUTTON_MAIN:
 	{
 		TCHAR string[200];
@@ -373,19 +458,11 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 			getHex(x, *buf);
 		}
 
-		//MessageBox(hWnd, buf, TEXT("Результат"), MB_OK);
 		TCHAR result[200];
 		wsprintf(result, TEXT("Результат: %s"), buf);
 
 		Static_SetText(g_hStaticResult, result);
 
-	}
-	break;
-	break;
-	case IDM_HELP_ABOUT:
-	{
-		//DialogBox((HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), MAKEINTRESOURCE(IDD_DIALOG1), hWnd, ModAboutDlgProc);
-		DialogBox((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), MAKEINTRESOURCE(IDD_DIALOG1), hWnd, (DLGPROC)ModAboutDlgProc);
 	}
 	break;
 	default:
@@ -396,6 +473,14 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 	}
 }
 
+// WM_SETFOCUS
+void km_OnChildSetFocus(HWND hwnd, HWND hWndOldFocus)
+{
+	SetFocus(GetDlgItem(hwnd, IDC_CHILD_EDIT));
+}
+
+
+
 BOOL CALLBACK ModAboutDlgProc(HWND hDlg, UINT mes, WPARAM wParam, LPARAM lParam)
 {
 	switch (mes)
@@ -404,7 +489,6 @@ BOOL CALLBACK ModAboutDlgProc(HWND hDlg, UINT mes, WPARAM wParam, LPARAM lParam)
 	{
 		TCHAR buff[200];
 		GetDlgItemText(hDlg, IDC_STATIC1, buff, 200);
-		//MessageBox(hDlg, buff, NULL, MB_OK);
 		SYSTEMTIME st;
 		GetLocalTime(&st);
 		TCHAR buff1[200];

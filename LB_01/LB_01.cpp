@@ -12,22 +12,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpsz
 
 	if (hWnd == NULL) return FALSE;
 
-	HACCEL hAccel;
-	hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
-
-
-	g_hwndDlg = (HWND)0;
-
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		if (g_hwndDlg == 0 || !IsDialogMessage(g_hwndDlg, &msg))
-		{
-			if (!TranslateAccelerator(hWnd, hAccel, &msg))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
 	return (int)msg.wParam;
 }
@@ -37,13 +25,10 @@ LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 		HANDLE_MSG(hWnd, WM_COMMAND, km_OnCommand);				// Комманды
-		HANDLE_MSG(hWnd, WM_MENUSELECT, km_OnMenuSelect);		// Смена меню
 		HANDLE_MSG(hWnd, WM_CLOSE, km_OnClose);					// Закрытие окна
-		HANDLE_MSG(hWnd, WM_LBUTTONDOWN, km_OnLButtonDown);		// Левая кнопка мыши нажата
-		HANDLE_MSG(hWnd, WM_RBUTTONDOWN, km_OnRButtonDown);		// Правая кнопка мыши нажата
 		HANDLE_MSG(hWnd, WM_CREATE, km_OnCreate);				// Создание окна
 		HANDLE_MSG(hWnd, WM_PAINT, km_OnPaint);					// Перерысовывание окна
-		HANDLE_MSG(hWnd, WM_DESTROY, km_OnDestroy);				// Разружение окна
+		HANDLE_MSG(hWnd, WM_DESTROY, km_OnDestroy);				// Разрушение окна
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -62,8 +47,6 @@ BOOL Register(HINSTANCE hInst)
 	wc.hInstance = hInst;
 	wc.hIcon = LoadIcon(hInst, IDI_APPLICATION);
 	wc.hCursor = LoadCursor(hInst, IDC_ARROW);
-	//HBRUSH hbr;
-	//hbr = CreateSolidBrush();
 	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW);
 
 	wc.lpszMenuName = NULL;
@@ -85,9 +68,7 @@ HWND Create(HINSTANCE hInstance, int nCmdShow)
 	DWORD Stl;
 	Stl = WS_OVERLAPPEDWINDOW ^ WS_MAXIMIZEBOX;
 
-	g_lpszMainMenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MENU1));
-
-	HWND hWnd = CreateWindowEx(NULL /*| WS_EX_TRANSPARENT*/, g_lpszClassName,
+	HWND hWnd = CreateWindowEx(NULL, g_lpszClassName,
 		g_lpszAplicationTitle,
 		Stl,
 		200,
@@ -95,7 +76,7 @@ HWND Create(HINSTANCE hInstance, int nCmdShow)
 		500,
 		250,
 		NULL,
-		g_lpszMainMenu,
+		NULL,
 		hInstance,
 		NULL
 	);
@@ -118,39 +99,8 @@ HWND Create(HINSTANCE hInstance, int nCmdShow)
 // WM_CREATE
 BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 {
-	//MessageBox(hWnd, TEXT("WM_CREATE"), g_lpszDestroyTitle, MB_OK | MB_ICONEXCLAMATION);
-
-	g_lpszFileMenu = GetSubMenu(g_lpszMainMenu, 0);
-	g_lpszViewMenu = GetSubMenu(g_lpszMainMenu, 1);
-
-
 	RECT rc;
 	GetClientRect(hWnd, &rc);
-
-
-
-	//SetLayeredWindowAttributes(hWnd, RGB(0, 0, 0), 200, LWA_COLORKEY | LWA_ALPHA);
-
-	//int x1, y1, x2, y2;
-	//RECT rect;
-	//POINT pointtop, pointbottom;
-
-	//GetClientRect(hWnd, &rect);
-	////Get The Coordinates of the Window.
-	//
-	//pointtop = { rect.left,rect.top };
-	//pointbottom = { rect.right, rect.bottom };
-
-	////Break the Coordinates into four different variables.
-	//x1 = pointtop.x;
-	//y1 = pointtop.y;
-	//x2 = pointbottom.x;
-	//y2 = pointbottom.y;
-
-
-	//HRGN region = CreateRoundRectRgn(x1, y1, x2, y2 , 50,50);
-	//SetWindowRgn(hWnd, region, TRUE);
-
 
 	g_hEdit = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT, rc.left + 10, rc.top + 10, 150, 20, hWnd, (HMENU)IDC_EDIT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	SetFocus(g_hEdit);
@@ -169,10 +119,6 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	Button_Enable(g_hRadioThree, FALSE);
 	Button_Enable(g_hRadioOct, FALSE);
 	Button_Enable(g_hRadioHex, FALSE);
-
-	//CheckRadioButton(g_hRadioBin, IDC_RADIO_BIN, IDC_RADIO_HEX, IDC_RADIO_BIN);
-	//Button_SetCheck(g_hRadioBin, BM_SETCHECK);
-
 
 	HANDLE  hFindFile;
 	WIN32_FIND_DATA  fd;
@@ -240,9 +186,6 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 			}
 		}
 
-		//TCHAR stringText[100];
-		//sprintf_s(stringText, 100, TEXT("Файл найден - %s"), fd.cFileName);
-		//MessageBox(hWnd, stringText, TEXT("Успех"), MB_OK);
 	} 
 	while (FindNextFile(hFindFile, &fd));
 
@@ -270,16 +213,6 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	return TRUE;
 }
 
-// WM_LBUTTONDOWN
-void  km_OnLButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
-{
-}
-
-// WM_RBUTTONDOWN
-void  km_OnRButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
-{
-}
-
 // WM_ONPAINT
 void km_OnPaint(HWND hWnd)
 {
@@ -288,24 +221,6 @@ void km_OnPaint(HWND hWnd)
 	RECT rc;
 	GetClientRect(hWnd, &rc);
 
-	//int x1, y1, x2, y2;
-	//POINT pointtop, pointbottom;
-	////Get The Coordinates of the Window.
-
-	//pointtop = { rc.left,rc.top };
-	//pointbottom = { rc.right, rc.bottom };
-
-	////Break the Coordinates into four different variables.
-	//x1 = pointtop.x;
-	//y1 = pointtop.y;
-	//x2 = pointbottom.x;
-	//y2 = pointbottom.y;
-
-
-	//HRGN region = CreateRoundRectRgn(x1, y1, x2, y2, 50, 50);
-	//SetWindowRgn(hWnd, region, TRUE);
-
-	//SetWindowPos(g_hEdit, HWND_TOP, rc.left, rc.top, rc.right, rc.bottom - 50, NULL);
 	EndPaint(hWnd, &ps);
 }
 
@@ -315,16 +230,9 @@ void km_OnClose(HWND hWnd)
 	DestroyWindow(hWnd);
 }
 
-// WM_MENUSELECT
-void km_OnMenuSelect(HWND hWnd, HMENU hmenu, int item, HMENU hmenuPopup, UINT flags)
-{
-}
-
 // WM_DESTROY
 void km_OnDestroy(HWND hWnd)
 {
-	//MessageBox(hWnd, g_lpszDestroyMessage, g_lpszDestroyTitle, MB_OK | MB_ICONEXCLAMATION);
-
 	PostQuitMessage(0);
 }
 
@@ -337,11 +245,6 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	switch (id)
 	{
-	case IDM_FILE_EXIT:
-	{
-		DestroyWindow(hWnd);
-	}
-	break;
 	case IDC_BUTTON_MAIN:
 	{
 		TCHAR string[200];
@@ -373,19 +276,9 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 			getHex(x, *buf);
 		}
 
-		//MessageBox(hWnd, buf, TEXT("Результат"), MB_OK);
 		TCHAR result[200];
 		wsprintf(result, TEXT("Результат: %s"), buf);
-
 		Static_SetText(g_hStaticResult, result);
-
-	}
-	break;
-	break;
-	case IDM_HELP_ABOUT:
-	{
-		//DialogBox((HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), MAKEINTRESOURCE(IDD_DIALOG1), hWnd, ModAboutDlgProc);
-		DialogBox((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), MAKEINTRESOURCE(IDD_DIALOG1), hWnd, (DLGPROC)ModAboutDlgProc);
 	}
 	break;
 	default:
@@ -394,45 +287,6 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 	}
 	break;
 	}
-}
-
-BOOL CALLBACK ModAboutDlgProc(HWND hDlg, UINT mes, WPARAM wParam, LPARAM lParam)
-{
-	switch (mes)
-	{
-	case WM_INITDIALOG:
-	{
-		TCHAR buff[200];
-		GetDlgItemText(hDlg, IDC_STATIC1, buff, 200);
-		//MessageBox(hDlg, buff, NULL, MB_OK);
-		SYSTEMTIME st;
-		GetLocalTime(&st);
-		TCHAR buff1[200];
-		wsprintf(buff1, TEXT("Текущая дата: %d.%d.%d и время %d:%d:%d \n "), st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute, st.wSecond);
-		lstrcat(buff1, buff);
-		SetDlgItemText(hDlg, IDC_STATIC1, buff1);
-	}
-	return TRUE;
-	case WM_COMMAND:
-	{
-		int id = LOWORD(wParam);
-
-		switch (id)
-		{
-		case IDOK:
-			EndDialog(hDlg, IDOK);
-		case IDCANCEL:
-			EndDialog(hDlg, IDCANCEL);
-		}
-	}
-	break;
-	case WM_CLOSE:
-	{
-		EndDialog(hDlg, IDCANCEL);
-	}
-	return TRUE;
-	}
-	return FALSE;
 }
 
 

@@ -8,12 +8,12 @@
 
 //-- Prototypes -------------------
 BOOL CALLBACK ModAboutDlgProc(HWND, UINT, WPARAM, LPARAM);
-BOOL CALLBACK ModLoadDlgProc(HWND, UINT, WPARAM, LPARAM);
-BOOL CALLBACK LoadBmpDlgProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK ChildWndProc(HWND, UINT, WPARAM, LPARAM);
 
-LRESULT CALLBACK Pr2_WndProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
 /* Регистрация окна */
 BOOL Register(HINSTANCE);
+
 /* Создание окна */
 HWND Create(HINSTANCE, int);
 
@@ -23,23 +23,35 @@ HWND Create(HINSTANCE, int);
 BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct);
 /*--- WM_DESTROY -----------------------------------------------------*/
 void km_OnDestroy(HWND hWnd);
-/*--- WM_LBUTTONDOWN , WM_LBUTTONDBCLK -------------------------------*/
-void km_OnLButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags);
-/*--- WM_RBUTTONDOWN , WM_RBUTTONDBCLK -------------------------------*/
-void km_OnRButtonDown(HWND hWnd, BOOL fDoubleClick, int x, int y, UINT keyFlags);
 /*--- WM_PAINT -------------------------------------------------------*/
 void km_OnPaint(HWND hWnd);
+/*--- WM_SIZE -----------------------------------------------------*/
+void km_OnSize(HWND hWnd, UINT wSizeType, SHORT cx, SHORT cy);
 /*--- WM_CLOSE -------------------------------------------------------*/
 void km_OnClose(HWND hWnd);
-/*--- WM_MENUSELECT -------------------------------------------------------*/
-void km_OnMenuSelect(HWND hWnd, HMENU hmenu, int item, HMENU hmenuPopup, UINT flags);
 /*--- WM_COMMAND ----------------------------------------------------------*/
 void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify);
 /*--------------------------------------------------------------------*/
 
+/*--- WM_СREATE -----------------------------------------------------*/
+BOOL km_OnChildCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct);
+/*--- WM_MDICREATE -----------------------------------------------------*/
+BOOL km_OnChildActivate(HWND hWnd, BOOL bActive, HWND hWndActive, HWND hWndDeactive);
+/*--- WM_SIZE -----------------------------------------------------*/
+void km_OnChildSize(HWND hWnd, UINT wSizeType, SHORT cx, SHORT cy);
+/*--- WM_SETFOCUS -----------------------------------------------------*/
+void km_OnChildSetFocus(HWND hwnd, HWND hWndOldFocus);
+/*--- WM_DESTROY -----------------------------------------------------*/
+void km_OnChildDestroy(HWND hWnd);
+/*--- WM_PAINT -------------------------------------------------------*/
+void km_OnChildPaint(HWND hWnd);
+/*--- WM_COMMAND ----------------------------------------------------------*/
+void km_OnChildCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify);
+
 
 //-- Global Variables ------------ 
-LPCTSTR g_lpszClassName = TEXT("sp_pr2_class");
+LPCTSTR g_lpszClassName = TEXT("window_class");
+LPCTSTR g_lpszChildClassName = TEXT("window_childclass");
 LPCTSTR g_lpszlistboxClassName = TEXT("Button");
 LPCTSTR g_lpszAplicationTitle = TEXT("Заголовок окна");
 LPCTSTR g_lpszDestroyTitle = TEXT("Разрушение название");
@@ -53,6 +65,10 @@ TCHAR Buffer[MAX_BYTES] = TEXT("Окно");
 
 HWND g_hwndDlg; // Диалоговое окно
 HANDLE g_hFile = NULL;
+
+HINSTANCE g_hInst;
+HWND g_hMainWnd;
+HWND g_hMDIClientWnd;
 
 // Global variables
 HMENU		g_lpszMainMenu;
@@ -78,6 +94,11 @@ HWND g_hStaticResult;
 #define IDC_RADIO_HEX		40105
 
 #define IDC_STATIC_RESULT	40106
+
+#define ID_MDI_CLIENT     40110
+#define ID_MDI_FIRSTCHILD  50000
+
+#define IDC_CHILD_EDIT      2000
 
 typedef void(*pGetBin)(int x, char*);
 typedef char*(*pGetThree)(int x);
