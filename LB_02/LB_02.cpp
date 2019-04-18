@@ -30,15 +30,124 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
-		HANDLE_MSG(hWnd, WM_COMMAND, km_OnCommand);				// Комманды
-		HANDLE_MSG(hWnd, WM_CLOSE, km_OnClose);					// Закрытие окна
-		HANDLE_MSG(hWnd, WM_SIZE, km_OnSize);					// Закрытие окна
-		HANDLE_MSG(hWnd, WM_CREATE, km_OnCreate);				// Создание окна
+		//HANDLE_MSG(hWnd, WM_COMMAND, km_OnCommand);				// Комманды
+		//HANDLE_MSG(hWnd, WM_CLOSE, km_OnClose);					// Закрытие окна
+		//HANDLE_MSG(hWnd, WM_SIZE, km_OnSize);					// Закрытие окна
+		//HANDLE_MSG(hWnd, WM_CREATE, km_OnCreate);				// Создание окна
 		//HANDLE_MSG(hWnd, WM_PAINT, km_OnPaint);					// Перерысовывание окна
-		HANDLE_MSG(hWnd, WM_DESTROY, km_OnDestroy);				// Разружение окна
+		//HANDLE_MSG(hWnd, WM_DESTROY, km_OnDestroy);				// Разружение окна
+		case WM_CREATE:
+		{
+			g_lpszFileMenu = GetSubMenu(g_lpszMainMenu, 0);
+			g_lpszViewMenu = GetSubMenu(g_lpszMainMenu, 1);
+
+			////////////////////////////////////////
+			CLIENTCREATESTRUCT ccs;
+			memset(&ccs, 0, sizeof(CLIENTCREATESTRUCT));
+
+			// Find window menu where children will be listed
+			ccs.hWindowMenu = g_lpszViewMenu;
+			ccs.idFirstChild = ID_MDI_FIRSTCHILD;
+			g_hMDIClientWnd = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("MDICLIENT"), NULL,
+				WS_CHILD | WS_CLIPCHILDREN | WS_VSCROLL | WS_HSCROLL,
+				CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+				hWnd, (HMENU)ID_MDI_CLIENT, g_hInst, (LPVOID)&ccs);
+
+			if (!g_hMDIClientWnd)
+				return FALSE;
+
+			ShowWindow(g_hMDIClientWnd, SW_SHOW);
+
+			return 0;
+		}
+		case WM_COMMAND:
+		{
+			switch (LOWORD(wParam))
+			{
+			case IDM_FILE_NEW:
+			{
+				MDICREATESTRUCT mcs;
+				HWND hChild;
+
+				g_CountMDI++;
+				g_CountMDIText++;
+
+				TCHAR Buffer[100] = TEXT("Окно");
+				wsprintf(Buffer, TEXT("%s %d"), Buffer, g_CountMDIText);
+
+				mcs.szTitle = Buffer;
+				mcs.szClass = g_lpszChildClassName;
+				mcs.hOwner = g_hInst;
+				mcs.x = mcs.cx = CW_USEDEFAULT;
+				mcs.y = mcs.cy = CW_USEDEFAULT;
+				mcs.style = MDIS_ALLCHILDSTYLES;
+
+				hChild = (HWND)SendMessage(g_hMDIClientWnd, WM_MDICREATE, 0, (LPARAM)&mcs);
+
+				if (!hChild)
+				{
+					MessageBox(hWnd, "MDI Child creation failed.", "Oh Oh...",
+						MB_ICONEXCLAMATION | MB_OK);
+				}
+			}
+			break;
+			case IDM_FILE_CLOSE:
+			{
+				SendMessage(g_hMDIActiveWnd, WM_CLOSE, 0, 0);
+			}
+			break;
+			case IDM_WINDOW_CLOSEALL:
+			{
+				EnumChildWindows(g_hMDIClientWnd, CloseEnumProc, 0);
+			}
+			break;
+			case IDM_HELP_ABOUT:
+			{
+				DialogBox((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), MAKEINTRESOURCE(IDD_DIALOG1), hWnd, (DLGPROC)ModAboutDlgProc);
+			}
+			break;
+			default:
+			{
+				if (LOWORD(wParam) >= ID_MDI_FIRSTCHILD)
+				{
+					DefFrameProc(hWnd, g_hMDIClientWnd, msg, wParam, lParam);
+				}
+				else
+				{
+					HWND hChild;
+					hChild = (HWND)SendMessage(g_hMDIClientWnd, WM_MDIGETACTIVE, 0, 0);
+					if (hChild)
+					{
+						SendMessage(hChild, WM_COMMAND, wParam, lParam);
+					}
+				}
+			}
+			}
+		}
+		break;
+		case WM_SIZE:
+		{
+			RECT rectClient;
+			UINT uClientAlreaHeight;
+
+			GetClientRect(hWnd, &rectClient);
+			uClientAlreaHeight = rectClient.bottom;
+
+			MoveWindow(g_hMDIClientWnd, 0, 0, rectClient.right, uClientAlreaHeight, TRUE);
+		}
+		break;
+		case WM_CLOSE:
+			DestroyWindow(hWnd);
+			break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		default:
+			return DefFrameProc(hWnd, g_hMDIClientWnd, msg, wParam, lParam);
 	}
 
-	return	DefFrameProc(hWnd, g_hMDIClientWnd, msg, wParam, lParam);
+	return 0;
+	//return DefFrameProc(hWnd, g_hMDIClientWnd, msg, wParam, lParam);
 }
 
 LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -51,7 +160,12 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		HANDLE_MSG(hWnd, WM_MDIACTIVATE, km_OnChildActivate);		// Активация окна
 		HANDLE_MSG(hWnd, WM_SIZE, km_OnChildSize);
 		HANDLE_MSG(hWnd, WM_SETFOCUS, km_OnChildSetFocus);			// получение фокуса окна
-		//HANDLE_MSG(hWnd, WM_DESTROY, km_OnDestroy);				// Разружение окна
+		//HANDLE_MSG(hWnd, WM_MDIDESTROY, km_OnChildDestroy);				// Разрушение окна
+	case WM_CLOSE:
+	{
+		g_CountMDI--;
+	}
+	break;
 	}
 	return DefMDIChildProc(hWnd, message, wParam, lParam);
 }
@@ -126,127 +240,6 @@ HWND Create(HINSTANCE hInstance, int nCmdShow)
 	return hWnd;
 }
 
-
-
-// WM_CREATE
-BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
-{
-	g_lpszFileMenu = GetSubMenu(g_lpszMainMenu, 0);
-	g_lpszViewMenu = GetSubMenu(g_lpszMainMenu, 1);
-
-	////////////////////////////////////////
-	CLIENTCREATESTRUCT ccs;
-	memset(&ccs, 0, sizeof(CLIENTCREATESTRUCT));
-
-	// Find window menu where children will be listed
-	ccs.hWindowMenu = g_lpszViewMenu;
-	ccs.idFirstChild = ID_MDI_FIRSTCHILD;
-	g_hMDIClientWnd = CreateWindowEx(WS_EX_CLIENTEDGE, "mdiclient", NULL,
-		WS_CHILD | WS_CLIPCHILDREN | WS_VSCROLL | WS_HSCROLL,
-		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		hWnd, (HMENU)ID_MDI_CLIENT, g_hInst, (LPVOID)&ccs);
-
-	if (!g_hMDIClientWnd)
-		return FALSE;
-
-	ShowWindow(g_hMDIClientWnd, SW_SHOW);
-
-
-	return TRUE;
-}
-
-// WM_SIZE
-void km_OnSize(HWND hWnd, UINT wSizeType, SHORT cx, SHORT cy)
-{
-	RECT rectClient;
-	UINT uClientAlreaHeight;
-
-	GetClientRect(hWnd, &rectClient);
-	uClientAlreaHeight = rectClient.bottom;
-
-	MoveWindow(g_hMDIClientWnd, 0, 0, rectClient.right, uClientAlreaHeight, TRUE);
-
-	//DefFrameProc(hWnd, g_hMDIClientWnd, 0, (WPARAM)wSizeType, MAKELPARAM(cx, cy));
-}
-
-
-// WM_ONPAINT
-void km_OnPaint(HWND hWnd)
-{
-	PAINTSTRUCT ps;
-	HDC hDC = BeginPaint(hWnd, &ps);
-	RECT rc;
-	GetClientRect(hWnd, &rc);
-
-	EndPaint(hWnd, &ps);
-}
-
-// WM_ONCLOSE
-void km_OnClose(HWND hWnd)
-{
-	DestroyWindow(hWnd);
-}
-
-// WM_DESTROY
-void km_OnDestroy(HWND hWnd)
-{
-	PostQuitMessage(0);
-}
-
-// WM_COMMAND
-void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
-{
-	TCHAR buff[200];
-	DWORD dwNumbOfBytes = MAX_BYTES;
-	wsprintf(buff, TEXT("%d"), id);
-
-	switch (id)
-	{
-	case IDM_FILE_EXIT:
-	{
-		MDICREATESTRUCT mcs;
-		HWND hChild;
-
-		mcs.szTitle = "[Untitled]";
-		mcs.szClass = g_lpszChildClassName;
-		mcs.hOwner = g_hInst;
-		mcs.x = mcs.cx = CW_USEDEFAULT;
-		mcs.y = mcs.cy = CW_USEDEFAULT;
-		mcs.style = MDIS_ALLCHILDSTYLES;
-
-		hChild = (HWND)SendMessage(g_hMDIClientWnd, WM_MDICREATE,
-			0, (LPARAM)&mcs);
-		if (!hChild)
-		{
-			MessageBox(hWnd, "MDI Child creation failed.", "Oh Oh...",
-				MB_ICONEXCLAMATION | MB_OK);
-		}
-
-	}
-	break;
-	case IDM_HELP_ABOUT:
-	{
-		DialogBox((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), MAKEINTRESOURCE(IDD_DIALOG1), hWnd, (DLGPROC)ModAboutDlgProc);
-	}
-	break;
-	default:
-	{
-		if (id >= ID_MDI_FIRSTCHILD) {
-			DefFrameProc(hWnd, g_hMDIClientWnd, 0, (WPARAM)hwndCtl, (LPARAM)id);
-		}
-		else {
-			HWND hChild;
-			hChild = (HWND)SendMessage(g_hMDIClientWnd, WM_MDIGETACTIVE, 0, 0);
-			if (hChild) {
-				SendMessage(hChild, WM_COMMAND, (WPARAM)hwndCtl, (LPARAM)id);
-			}
-		}
-	}
-	break;
-	}
-}
-
-
 ////////////////////////////////////////
 //////////////////////////////////////////
 // WM_CREATE
@@ -257,7 +250,7 @@ BOOL km_OnChildCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 
 
 	g_hEdit = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT, rc.left + 10, rc.top + 10, 150, 20, hWnd, (HMENU)IDC_EDIT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
-	SetFocus(g_hEdit);
+	//SetFocus(g_hEdit);
 
 	g_hButtonMain = CreateWindow(TEXT("button"), TEXT("OK"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, rc.left + 10, rc.top + 40, 100, 25, hWnd, (HMENU)IDC_BUTTON_MAIN, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	SetFocus(g_hButtonMain);
@@ -369,9 +362,8 @@ BOOL km_OnChildCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 // WM_MDIACTIVATE
 BOOL km_OnChildActivate(HWND hWnd, BOOL bActive, HWND hWndActive, HWND hWndDeactive)
 {
-	HMENU hMenu, hFileMenu;
+	HMENU hMenu;
 	BOOL EnableFlag;
-	char szFileName[MAX_PATH];
 
 	hMenu = GetMenu(g_hMainWnd);
 	if (hWnd == hWndActive) {      //being activated
@@ -381,7 +373,9 @@ BOOL km_OnChildActivate(HWND hWnd, BOOL bActive, HWND hWndActive, HWND hWndDeact
 		EnableFlag = FALSE;    //being de-activated
 	}
 
-	//DrawMenuBar(g_hMainWnd);
+	SetFocus(hWndActive);
+	g_hMDIActiveWnd = hWndActive;
+	DrawMenuBar(g_hMainWnd);
 
 	return TRUE;
 }
@@ -389,32 +383,53 @@ BOOL km_OnChildActivate(HWND hWnd, BOOL bActive, HWND hWndActive, HWND hWndDeact
 // WM_SIZE 
 void km_OnChildSize(HWND hWnd, UINT wSizeType, SHORT cx, SHORT cy)
 {
+	TCHAR buff[200];
+	//DWORD dwNumbOfBytes = MAX_BYTES;
+	wsprintf(buff, TEXT("%d"), wSizeType);
+
+	TCHAR buff1[200];
+	//DWORD dwNumbOfBytes = MAX_BYTES;
+	wsprintf(buff1, TEXT("%d"), SIZE_MINIMIZED);
+
+
+
 	if (wSizeType != SIZE_MINIMIZED)
-		MoveWindow(GetDlgItem(hWnd, IDC_CHILD_EDIT), 0, 0,cx,cy, TRUE);
+	{
+		//MessageBox(hWnd, buff, buff1, MB_OK);
+		MoveWindow(GetDlgItem(hWnd, ID_MDI_CLIENT), 0, 0, cx, cy, TRUE);
+		//SetScrollPos(GetDlgItem(hWnd, ID_MDI_CLIENT), 0, 0, TRUE);
+	}
+		//MoveWindow(GetDlgItem(hWnd, ID_MDI_CLIENT), 0, 0,cx,cy, TRUE);
 
 	DefMDIChildProc(hWnd, WM_SIZE, (WPARAM)wSizeType, MAKELPARAM(cx, cy));
 }
 
-// WM_ONPAINT
-void km_OnChildPaint(HWND hWnd)
-{
-	PAINTSTRUCT ps;
-	HDC hDC = BeginPaint(hWnd, &ps);
-	RECT rc;
-	GetClientRect(hWnd, &rc);
-
-	EndPaint(hWnd, &ps);
-}
-
 // WM_ONCLOSE
-void km_OnChildClose(HWND hWnd)
-{
-	DestroyWindow(hWnd);
-}
+//void km_OnChildClose(HWND hWnd)
+//{
+//	//g_CountMDI--;
+//	//int count = GetMenuItemCount(g_lpszViewMenu);
+//
+//	//TCHAR buff[100];
+//	//GetWindowText(hWnd, buff, sizeof(buff));
+//
+//	//TCHAR text[100];
+//	//for (int i = 2; i < count; i++)
+//	//{
+//	//	GetMenuString(g_lpszViewMenu, GetMenuItemID(g_lpszViewMenu, i), text, sizeof(text), MF_BYCOMMAND);
+//	//	MessageBox(hWnd, text, TEXT(""), MB_OK);
+//	//}
+//
+//	//RemoveMenu(g_lpszViewMenu, count - 1, (MF_BYPOSITION | MF_REMOVE));
+//	//DrawMenuBar(g_hMainWnd);
+//
+//	DestroyWindow(hWnd);
+//}
 
 // WM_DESTROY
 void km_OnChildDestroy(HWND hWnd)
 {
+	g_CountMDI--;
 	PostQuitMessage(0);
 }
 
@@ -429,31 +444,32 @@ void km_OnChildCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 	{
 	case IDC_BUTTON_MAIN:
 	{
+		MessageBox(hWnd, buff, TEXT("Сообщение"), MB_OK);
+
 		TCHAR string[200];
 		TCHAR buf[200];
-		GetWindowText(g_hEdit, string, sizeof(string));
+		GetWindowText(GetDlgItem(hWnd, IDC_EDIT), string, sizeof(string));
 		int x = atoi(string);
 
-
-		if (Button_GetCheck(g_hRadioBin))
+		if (Button_GetCheck(GetDlgItem(hWnd, IDC_RADIO_BIN)))
 		{
 			getBin(x, buf);
 		}
 
-		if (Button_GetCheck(g_hRadioThree))
+		if (Button_GetCheck(GetDlgItem(hWnd, IDC_RADIO_THREE)))
 		{
 			char* temp;
 			temp = getThree(x);
 			wsprintf(buf, TEXT("%s"), temp);
 		}
 
-		if (Button_GetCheck(g_hRadioOct))
+		if (Button_GetCheck(GetDlgItem(hWnd, IDC_RADIO_OCT)))
 		{
 			char* temp = &getOct(x);
 			wsprintf(buf, TEXT("%s"), temp);
 		}
 
-		if (Button_GetCheck(g_hRadioHex))
+		if (Button_GetCheck(GetDlgItem(hWnd, IDC_RADIO_HEX)))
 		{
 			getHex(x, *buf);
 		}
@@ -461,7 +477,7 @@ void km_OnChildCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 		TCHAR result[200];
 		wsprintf(result, TEXT("Результат: %s"), buf);
 
-		Static_SetText(g_hStaticResult, result);
+		Static_SetText(GetDlgItem(hWnd, IDC_STATIC_RESULT), result);
 
 	}
 	break;
@@ -473,10 +489,25 @@ void km_OnChildCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 	}
 }
 
+BOOL CALLBACK CloseEnumProc(HWND hWnd, LPARAM lparam)
+{
+	if (GetWindow(hWnd, GW_OWNER))         // Check for icon title
+		return TRUE;
+
+	SendMessage(GetParent(hWnd), WM_MDIRESTORE, (WPARAM)hWnd, 0);
+
+	if (!SendMessage(hWnd, WM_QUERYENDSESSION, 0, 0))
+		return TRUE;
+
+	SendMessage(GetParent(hWnd), WM_MDIDESTROY, (WPARAM)hWnd, 0);
+	g_CountMDI--;
+	return TRUE;
+}
+
 // WM_SETFOCUS
 void km_OnChildSetFocus(HWND hwnd, HWND hWndOldFocus)
 {
-	SetFocus(GetDlgItem(hwnd, IDC_CHILD_EDIT));
+	SetFocus(GetDlgItem(hwnd, ID_MDI_CLIENT));
 }
 
 
@@ -488,13 +519,8 @@ BOOL CALLBACK ModAboutDlgProc(HWND hDlg, UINT mes, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG:
 	{
 		TCHAR buff[200];
-		GetDlgItemText(hDlg, IDC_STATIC1, buff, 200);
-		SYSTEMTIME st;
-		GetLocalTime(&st);
-		TCHAR buff1[200];
-		wsprintf(buff1, TEXT("Текущая дата: %d.%d.%d и время %d:%d:%d \n "), st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute, st.wSecond);
-		lstrcat(buff1, buff);
-		SetDlgItemText(hDlg, IDC_STATIC1, buff1);
+		wsprintf(buff, TEXT("Открыто MDI окон: %d \n "), g_CountMDI);
+		SetDlgItemText(hDlg, IDC_STATIC1, buff);
 	}
 	return TRUE;
 	case WM_COMMAND:

@@ -164,6 +164,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		{
 			if (LOWORD(wParam) >= ID_MDI_FIRSTCHILD) {
 				DefFrameProc(hwnd, g_hMDIClient, Message, wParam, lParam);
+
 			}
 			else {
 				HWND hChild;
@@ -207,24 +208,24 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT Message, WPARAM wParam,
 	case WM_CREATE:
 	{
 		char szFileName[MAX_PATH];
-		HWND hEdit;
+		//HWND hEdit;
 
-		hEdit = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "",
-			WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | ES_MULTILINE |
-			ES_WANTRETURN,
-			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-			hwnd, (HMENU)IDC_CHILD_EDIT, g_hInst, NULL);
+		//hEdit = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "",
+		//	WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | ES_MULTILINE |
+		//	ES_WANTRETURN,
+		//	CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		//	hwnd, (HMENU)IDC_CHILD_EDIT, g_hInst, NULL);
 
-		SendMessage(hEdit, WM_SETFONT,
-			(WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(TRUE, 0));
+		//SendMessage(hEdit, WM_SETFONT,
+		//	(WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(TRUE, 0));
 
 		GetWindowText(hwnd, szFileName, MAX_PATH);
 	}
 	break;
 	case WM_SIZE:
-		if (wParam != SIZE_MINIMIZED)
-			MoveWindow(GetDlgItem(hwnd, IDC_CHILD_EDIT), 0, 0, LOWORD(lParam),
-				HIWORD(lParam), TRUE);
+		//if (wParam != SIZE_MINIMIZED)
+		//	MoveWindow(GetDlgItem(hwnd, IDC_CHILD_EDIT), 0, 0, LOWORD(lParam),
+		//		HIWORD(lParam), TRUE);
 		break;
 	case WM_MDIACTIVATE:
 	{
@@ -252,7 +253,7 @@ LRESULT CALLBACK MDIChildWndProc(HWND hwnd, UINT Message, WPARAM wParam,
 	}
 	break;
 	case WM_SETFOCUS:
-		SetFocus(GetDlgItem(hwnd, IDC_CHILD_EDIT));
+		//SetFocus(GetDlgItem(hwnd, IDC_CHILD_EDIT));
 		break;
 	}
 	return DefMDIChildProc(hwnd, Message, wParam, lParam);

@@ -41,6 +41,8 @@ BOOL km_OnChildActivate(HWND hWnd, BOOL bActive, HWND hWndActive, HWND hWndDeact
 void km_OnChildSize(HWND hWnd, UINT wSizeType, SHORT cx, SHORT cy);
 /*--- WM_SETFOCUS -----------------------------------------------------*/
 void km_OnChildSetFocus(HWND hwnd, HWND hWndOldFocus);
+/*--- WM_CLOSE -------------------------------------------------------*/
+void km_OnChildClose(HWND hWnd);
 /*--- WM_DESTROY -----------------------------------------------------*/
 void km_OnChildDestroy(HWND hWnd);
 /*--- WM_PAINT -------------------------------------------------------*/
@@ -48,6 +50,8 @@ void km_OnChildPaint(HWND hWnd);
 /*--- WM_COMMAND ----------------------------------------------------------*/
 void km_OnChildCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify);
 
+
+BOOL    CALLBACK CloseEnumProc(HWND, LPARAM);
 
 //-- Global Variables ------------ 
 LPCTSTR g_lpszClassName = TEXT("window_class");
@@ -60,8 +64,8 @@ LPCTSTR g_lpszDestroyMessage = TEXT("Произошло разрушение окна WM_DESTROY");
 
 #define MAX_BYTES  10000
 
-TCHAR lpszFileSpec[256];
-TCHAR Buffer[MAX_BYTES] = TEXT("Окно");
+int g_CountMDI = 0;
+int g_CountMDIText = 0;
 
 HWND g_hwndDlg; // Диалоговое окно
 HANDLE g_hFile = NULL;
@@ -69,6 +73,16 @@ HANDLE g_hFile = NULL;
 HINSTANCE g_hInst;
 HWND g_hMainWnd;
 HWND g_hMDIClientWnd;
+HWND g_hMDIActiveWnd;
+
+typedef struct  
+{
+	int menupos;
+	LPCTSTR tite;
+	HWND wnd;
+} MDIWnd;
+
+MDIWnd MDIwnds[30];
 
 // Global variables
 HMENU		g_lpszMainMenu;
