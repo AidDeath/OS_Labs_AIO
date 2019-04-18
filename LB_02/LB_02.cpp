@@ -48,7 +48,7 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// Find window menu where children will be listed
 			ccs.hWindowMenu = g_lpszViewMenu;
 			ccs.idFirstChild = ID_MDI_FIRSTCHILD;
-			g_hMDIClientWnd = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("MDICLIENT"), NULL,
+			g_hMDIClientWnd = CreateWindowEx(NULL, TEXT("MDICLIENT"), NULL,
 				WS_CHILD | WS_CLIPCHILDREN | WS_VSCROLL | WS_HSCROLL,
 				CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 				hWnd, (HMENU)ID_MDI_CLIENT, g_hInst, (LPVOID)&ccs);
@@ -78,8 +78,10 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				mcs.szTitle = Buffer;
 				mcs.szClass = g_lpszChildClassName;
 				mcs.hOwner = g_hInst;
-				mcs.x = mcs.cx = CW_USEDEFAULT;
-				mcs.y = mcs.cy = CW_USEDEFAULT;
+				mcs.x = CW_USEDEFAULT;
+				mcs.y = CW_USEDEFAULT;
+				mcs.cx = 350;
+				mcs.cy = 250;
 				mcs.style = MDIS_ALLCHILDSTYLES;
 
 				hChild = (HWND)SendMessage(g_hMDIClientWnd, WM_MDICREATE, 0, (LPARAM)&mcs);
@@ -248,6 +250,7 @@ BOOL km_OnChildCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	RECT rc;
 	GetClientRect(hWnd, &rc);
 
+	SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE)&~WS_SIZEBOX);
 
 	g_hEdit = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT, rc.left + 10, rc.top + 10, 150, 20, hWnd, (HMENU)IDC_EDIT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	//SetFocus(g_hEdit);
@@ -271,7 +274,7 @@ BOOL km_OnChildCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	WIN32_FIND_DATA  fd;
 
 	// находим первый файл
-	hFindFile = FindFirstFile(TEXT("D:\\Projects\\OS_LABS\\x64\\Debug\\*.dll"), &fd);
+	hFindFile = FindFirstFile(TEXT("..\\x64\\Debug\\*.dll"), &fd);
 
 	if (INVALID_HANDLE_VALUE == hFindFile)
 	{
@@ -362,7 +365,7 @@ BOOL km_OnChildCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 // WM_MDIACTIVATE
 BOOL km_OnChildActivate(HWND hWnd, BOOL bActive, HWND hWndActive, HWND hWndDeactive)
 {
-	HMENU hMenu;
+	HMENU hMenu, hFileMenu;
 	BOOL EnableFlag;
 
 	hMenu = GetMenu(g_hMainWnd);
@@ -372,6 +375,11 @@ BOOL km_OnChildActivate(HWND hWnd, BOOL bActive, HWND hWndActive, HWND hWndDeact
 	else {
 		EnableFlag = FALSE;    //being de-activated
 	}
+
+	EnableMenuItem(hMenu, 1, MF_BYPOSITION | (EnableFlag ? MF_ENABLED : MF_GRAYED));
+
+	hFileMenu = GetSubMenu(hMenu, 0);
+	EnableMenuItem(hFileMenu, IDM_FILE_CLOSE, MF_BYCOMMAND | (EnableFlag ? MF_ENABLED : MF_GRAYED));
 
 	SetFocus(hWndActive);
 	g_hMDIActiveWnd = hWndActive;
@@ -395,36 +403,11 @@ void km_OnChildSize(HWND hWnd, UINT wSizeType, SHORT cx, SHORT cy)
 
 	if (wSizeType != SIZE_MINIMIZED)
 	{
-		//MessageBox(hWnd, buff, buff1, MB_OK);
-		MoveWindow(GetDlgItem(hWnd, ID_MDI_CLIENT), 0, 0, cx, cy, TRUE);
-		//SetScrollPos(GetDlgItem(hWnd, ID_MDI_CLIENT), 0, 0, TRUE);
+		MoveWindow(GetDlgItem(hWnd, ID_MDI_CLIENT), 0, 0, 350, 250, TRUE);
 	}
-		//MoveWindow(GetDlgItem(hWnd, ID_MDI_CLIENT), 0, 0,cx,cy, TRUE);
 
 	DefMDIChildProc(hWnd, WM_SIZE, (WPARAM)wSizeType, MAKELPARAM(cx, cy));
 }
-
-// WM_ONCLOSE
-//void km_OnChildClose(HWND hWnd)
-//{
-//	//g_CountMDI--;
-//	//int count = GetMenuItemCount(g_lpszViewMenu);
-//
-//	//TCHAR buff[100];
-//	//GetWindowText(hWnd, buff, sizeof(buff));
-//
-//	//TCHAR text[100];
-//	//for (int i = 2; i < count; i++)
-//	//{
-//	//	GetMenuString(g_lpszViewMenu, GetMenuItemID(g_lpszViewMenu, i), text, sizeof(text), MF_BYCOMMAND);
-//	//	MessageBox(hWnd, text, TEXT(""), MB_OK);
-//	//}
-//
-//	//RemoveMenu(g_lpszViewMenu, count - 1, (MF_BYPOSITION | MF_REMOVE));
-//	//DrawMenuBar(g_hMainWnd);
-//
-//	DestroyWindow(hWnd);
-//}
 
 // WM_DESTROY
 void km_OnChildDestroy(HWND hWnd)
