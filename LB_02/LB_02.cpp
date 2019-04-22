@@ -95,7 +95,22 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 			case IDM_FILE_CLOSE:
 			{
-				SendMessage(g_hMDIActiveWnd, WM_CLOSE, 0, 0);
+			}
+			break;
+			case IDM_WINDOW_CASCADE:
+			{
+				PostMessage(g_hMDIClientWnd, WM_MDICASCADE, 0, 0);
+			}
+			break;
+			case IDM_WINDOW_PLACEINWINDOW:
+			{
+				PostMessage(g_hMDIClientWnd, WM_MDITILE, MDITILE_ZORDER, 0);
+			}
+			break;
+			case IDM_WINDOW_MINIMIZE:
+			{
+				EnumChildWindows(g_hMDIClientWnd, MinimizeEnumProc, 0);
+				//PostMessage(g_hMDIClientWnd, WM_SYSCOMMAND, SW_MINIMIZE, 0);
 			}
 			break;
 			case IDM_WINDOW_CLOSEALL:
@@ -139,7 +154,26 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 		case WM_CLOSE:
-			DestroyWindow(hWnd);
+		{
+			int msgboxID = MessageBox(
+				hWnd,
+				TEXT("Вы действительно хотите завершить работу приложения?"),
+				TEXT("Завершение приложения"),
+				MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON2
+			);
+
+			switch (msgboxID)
+			{
+			case IDOK:
+			{
+				EnumChildWindows(g_hMDIClientWnd, CloseEnumProc, 0);
+				DestroyWindow(hWnd);
+			}
+			break;
+			case IDCANCEL:
+				break;
+			}
+		}
 			break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
@@ -427,8 +461,6 @@ void km_OnChildCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 	{
 	case IDC_BUTTON_MAIN:
 	{
-		MessageBox(hWnd, buff, TEXT("Сообщение"), MB_OK);
-
 		TCHAR string[200];
 		TCHAR buf[200];
 		GetWindowText(GetDlgItem(hWnd, IDC_EDIT), string, sizeof(string));
@@ -484,6 +516,16 @@ BOOL CALLBACK CloseEnumProc(HWND hWnd, LPARAM lparam)
 
 	SendMessage(GetParent(hWnd), WM_MDIDESTROY, (WPARAM)hWnd, 0);
 	g_CountMDI--;
+	return TRUE;
+}
+
+BOOL CALLBACK MinimizeEnumProc(HWND hWnd, LPARAM lparam)
+{
+	if (GetWindow(hWnd, GW_OWNER))         // Check for icon title
+		return TRUE;
+
+
+	PostMessage(hWnd, WM_SYSCOMMAND, SC_MINIMIZE, lparam);
 	return TRUE;
 }
 

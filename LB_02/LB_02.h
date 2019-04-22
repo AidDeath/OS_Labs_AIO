@@ -52,6 +52,7 @@ void km_OnChildCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify);
 
 
 BOOL    CALLBACK CloseEnumProc(HWND, LPARAM);
+BOOL    CALLBACK MinimizeEnumProc(HWND, LPARAM);
 
 //-- Global Variables ------------ 
 LPCTSTR g_lpszClassName = TEXT("window_class");
