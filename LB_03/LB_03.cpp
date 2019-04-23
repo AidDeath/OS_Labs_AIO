@@ -45,7 +45,7 @@ LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	break;
 
-/*	case WM_LBUTTONDOWN:
+	case WM_LBUTTONDOWN:
 	{		// Перетаскивание окна за любой участок
 		// ---------------------------------------------------------
 		// Посылаем сообщение окну, чтобы оно думало, что кликнули по его заголовку.
@@ -53,7 +53,7 @@ LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, NULL);
 		break;
 	}
-*/
+
 
 
 
@@ -136,8 +136,6 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 
 	// Скругление углов окна
 	SetWindowRgn(hWnd, CreateRoundRectRgn(0,0,500,250,20,20),TRUE);
-
-	HRGN fRgn =CreateRectRgn(100, 100, 50, 50);
 		
 
 
@@ -154,7 +152,7 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 
 	g_hStaticResult = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 10, 250, 25, hWnd, (HMENU)IDC_STATIC_RESULT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 
-	g_hStaticForEllipse = CreateWindow /*-------HERE!! I'M HERE!!!!!----------------------*/
+	g_hStaticForEllipse = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 60, 250, 25, hWnd, (HMENU)IDC_STATIC_RESULT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 
 	Button_Enable(g_hRadioBin, FALSE);
 	Button_Enable(g_hRadioThree, FALSE);
