@@ -50,6 +50,7 @@ HWND g_hRadioOct;
 HWND g_hRadioHex;
 
 HWND g_hStaticResult;
+HWND g_hStaticForEllipse;
 
 #define IDC_EDIT			40100
 #define IDC_BUTTON_MAIN		40101
@@ -60,6 +61,8 @@ HWND g_hStaticResult;
 #define IDC_RADIO_HEX		40105
 
 #define IDC_STATIC_RESULT	40106
+#define IDC_STATIC_FOR_ELLIPSE 40107
+
 
 typedef void(*pGetBin)(int x, char*);
 typedef char*(*pGetThree)(int x);

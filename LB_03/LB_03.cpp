@@ -44,6 +44,19 @@ LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	break;
+
+/*	case WM_LBUTTONDOWN:
+	{		// Перетаскивание окна за любой участок
+		// ---------------------------------------------------------
+		// Посылаем сообщение окну, чтобы оно думало, что кликнули по его заголовку.
+		// ---------------------------------------------------------
+		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, NULL);
+		break;
+	}
+*/
+
+
+
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -108,6 +121,8 @@ HWND Create(HINSTANCE hInstance, int nCmdShow)
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
+
+
 	return hWnd;
 }
 
@@ -119,6 +134,13 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	RECT rc;
 	GetClientRect(hWnd, &rc);
 
+	// Скругление углов окна
+	SetWindowRgn(hWnd, CreateRoundRectRgn(0,0,500,250,20,20),TRUE);
+
+	HRGN fRgn =CreateRectRgn(100, 100, 50, 50);
+		
+
+
 	g_hEdit = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT, rc.left + 10, rc.top + 10, 150, 20, hWnd, (HMENU)IDC_EDIT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	SetFocus(g_hEdit);
 
@@ -127,10 +149,12 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 
 	g_hRadioBin = CreateWindow(TEXT("button"), TEXT("BIN"), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, rc.left + 10, rc.top + 80, 100, 25, hWnd, (HMENU)IDC_RADIO_BIN, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	g_hRadioThree = CreateWindow(TEXT("button"), TEXT("THREE"), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, rc.left + 10, rc.top + 100, 100, 25, hWnd, (HMENU)IDC_RADIO_THREE, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
-	g_hRadioOct = CreateWindow(TEXT("button"), TEXT("OCX"), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, rc.left + 10, rc.top + 120, 100, 25, hWnd, (HMENU)IDC_RADIO_OCT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	g_hRadioOct = CreateWindow(TEXT("button"), TEXT("OCT"), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, rc.left + 10, rc.top + 120, 100, 25, hWnd, (HMENU)IDC_RADIO_OCT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	g_hRadioHex = CreateWindow(TEXT("button"), TEXT("HEX"), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, rc.left + 10, rc.top + 140, 100, 25, hWnd, (HMENU)IDC_RADIO_HEX, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 
 	g_hStaticResult = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 10, 250, 25, hWnd, (HMENU)IDC_STATIC_RESULT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+
+	g_hStaticForEllipse = CreateWindow /*-------HERE!! I'M HERE!!!!!----------------------*/
 
 	Button_Enable(g_hRadioBin, FALSE);
 	Button_Enable(g_hRadioThree, FALSE);
@@ -237,7 +261,6 @@ void km_OnPaint(HWND hWnd)
 	HDC hDC = BeginPaint(hWnd, &ps);
 	RECT rc;
 	GetClientRect(hWnd, &rc);
-
 	EndPaint(hWnd, &ps);
 }
 
