@@ -1,5 +1,7 @@
 #include "LB_03.h"
 #include "stdio.h"
+#include "windef.h"
+#include "winuser.h"
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpszCmdLine, int nCmdShow)
 {
@@ -29,6 +31,19 @@ LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		HANDLE_MSG(hWnd, WM_CREATE, km_OnCreate);				// Создание окна
 		HANDLE_MSG(hWnd, WM_PAINT, km_OnPaint);					// Перерысовывание окна
 		HANDLE_MSG(hWnd, WM_DESTROY, km_OnDestroy);				// Разрушение окна
+	
+	case WM_ACTIVATE:
+	{		// При изменении статуса активации окна выставляем прозрачность.
+		if (LOWORD(wParam) == WA_CLICKACTIVE || LOWORD(wParam) == WA_ACTIVE)
+		{
+			SetLayeredWindowAttributes(hWnd, 0, 255, LWA_ALPHA);
+		}
+		if (LOWORD(wParam) == WA_INACTIVE)
+		{
+			SetLayeredWindowAttributes(hWnd, 0, 204, LWA_ALPHA);
+		}
+	}
+	break;
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -66,9 +81,11 @@ BOOL Register(HINSTANCE hInst)
 HWND Create(HINSTANCE hInstance, int nCmdShow)
 {
 	DWORD Stl;
+	//	Stl = WS_EX_LAYERED;
 	Stl = WS_OVERLAPPEDWINDOW ^ WS_MAXIMIZEBOX;
+	//	Stl = WS_DISABLED;
 
-	HWND hWnd = CreateWindowEx(NULL, g_lpszClassName,
+	HWND hWnd = CreateWindowEx(WS_EX_LAYERED, g_lpszClassName,
 		g_lpszAplicationTitle,
 		Stl,
 		200,
