@@ -146,8 +146,12 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 
 	g_hStaticResult = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 10, 250, 25, hWnd, (HMENU)IDC_STATIC_RESULT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 
-	g_hStaticForEllipse = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 60, 250, 25, hWnd, (HMENU)IDC_STATIC_RESULT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
-	
+
+//	HWND g_hStaticResult1 = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 50, 250, 25, hWnd, (HMENU)IDC_TRANSPARENSY, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+
+//	g_hTransparensy = CreateWindow(TEXT("static"), TEXT("Transparensy"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 50, 250, 50, hWnd, (HMENU)IDC_TRANSPARENSY, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+//	g_hTransparensy = CreateWindowEx(WS_EX_LAYERED, TEXT("static"), TEXT("Transpahensy"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 50, 250,50,hWnd, (HMENU)IDC_TRANSPARENSY, (HINSTANCE)GetWindowLongPtr(hWnd,GWLP_HINSTANCE), NULL );
+
 
 	Button_Enable(g_hRadioBin, FALSE);
 	Button_Enable(g_hRadioThree, FALSE);
@@ -254,11 +258,36 @@ void km_OnPaint(HWND hWnd)
 	HDC hDC = BeginPaint(hWnd, &ps);
 	RECT rc;
 	GetClientRect(hWnd, &rc);
+
+
 	// Скругление углов окна
-	SetWindowRgn(hWnd, CreateRoundRectRgn(0, 0, 500, 250, 20, 20), TRUE);
-	SetWindowRgn(g_hStaticForEllipse, CreateRoundRectRgn(10, 10, 10, 10, 3, 3),TRUE);
-	
-	SetLayeredWindowAttributes(g_hStaticForEllipse, 0, 100, LWA_ALPHA | LWA_COLORKEY);
+	HRGN hWholeWnd = CreateRoundRectRgn(rc.left, rc.top, 500, 250, 20, 20);
+
+	HRGN hTransparent = CreateRoundRectRgn(rc.left + 180, rc.top + 100, rc.left + 380, rc.top + 170, 10, 10);
+
+
+	HRGN hResultRGN = CreateRoundRectRgn(0, 0, 0, 0, 0, 0);
+	CombineRgn(hResultRGN, hWholeWnd, hTransparent, RGN_DIFF);
+	SetWindowRgn(hWnd, hResultRGN , TRUE);
+
+//	
+
+/*-------------------------------------------------------------------------------*/
+	/*
+	RECT rc1;
+	// Получаем размер клиентской прозрачной части
+	GetClientRect(g_hTransparensy, &rc1);
+	HRGN hRgn = CreateRoundRectRgn(rc1.left, rc1.top, rc1.right, rc1.bottom, 10, 10);
+	HDC hDC1 = GetDC(g_hTransparensy);
+	HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 0));
+	FrameRgn(hDC1, hRgn, hBrush, 1, 1);
+	//SetLayeredWindowAttributes(g_hTransparensy, 0, 100, LWA_ALPHA | LWA_COLORKEY);
+	SetWindowRgn(g_hTransparensy, hRgn ,TRUE);
+
+//	SetLayeredWindowAttributes(g_hStaticForEllipse, 0, 100, LWA_ALPHA | LWA_COLORKEY);
+	*/
+/*--------------------------------------------------------------------------------*/
+
 	EndPaint(hWnd, &ps);
 }
 
