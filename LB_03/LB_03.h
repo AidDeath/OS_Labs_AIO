@@ -50,7 +50,7 @@ HWND g_hRadioOct;
 HWND g_hRadioHex;
 
 HWND g_hStaticResult;
-//HWND g_hTransparensy;
+
 
 #define IDC_EDIT			40100
 #define IDC_BUTTON_MAIN		40101
@@ -62,7 +62,6 @@ HWND g_hStaticResult;
 
 #define IDC_STATIC_RESULT	40106
 
-//#define IDC_TRANSPARENSY	40107
 
 
 typedef void(*pGetBin)(int x, char*);

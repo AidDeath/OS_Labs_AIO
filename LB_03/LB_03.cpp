@@ -146,13 +146,6 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 
 	g_hStaticResult = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 10, 250, 25, hWnd, (HMENU)IDC_STATIC_RESULT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 
-
-//	HWND g_hStaticResult1 = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 50, 250, 25, hWnd, (HMENU)IDC_TRANSPARENSY, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
-
-//	g_hTransparensy = CreateWindow(TEXT("static"), TEXT("Transparensy"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 50, 250, 50, hWnd, (HMENU)IDC_TRANSPARENSY, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
-//	g_hTransparensy = CreateWindowEx(WS_EX_LAYERED, TEXT("static"), TEXT("Transpahensy"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 50, 250,50,hWnd, (HMENU)IDC_TRANSPARENSY, (HINSTANCE)GetWindowLongPtr(hWnd,GWLP_HINSTANCE), NULL );
-
-
 	Button_Enable(g_hRadioBin, FALSE);
 	Button_Enable(g_hRadioThree, FALSE);
 	Button_Enable(g_hRadioOct, FALSE);
@@ -259,34 +252,44 @@ void km_OnPaint(HWND hWnd)
 	RECT rc;
 	GetClientRect(hWnd, &rc);
 
-
 	// Скругление углов окна
 	HRGN hWholeWnd = CreateRoundRectRgn(rc.left, rc.top, 500, 250, 20, 20);
-
+	// Вычитаем из области окна со скруглением прозрачную область с таким же скруглением
 	HRGN hTransparent = CreateRoundRectRgn(rc.left + 180, rc.top + 100, rc.left + 380, rc.top + 170, 10, 10);
-
-
 	HRGN hResultRGN = CreateRoundRectRgn(0, 0, 0, 0, 0, 0);
 	CombineRgn(hResultRGN, hWholeWnd, hTransparent, RGN_DIFF);
-	SetWindowRgn(hWnd, hResultRGN , TRUE);
 
-//	
+	// Массив с координатами для рисования буквы
+	POINT vLetter[12];
+	vLetter[0].x = 250;
+	vLetter[0].y = 105;
+	vLetter[1].x = 260;
+	vLetter[1].y = 105;
+	vLetter[2].x = 260;
+	vLetter[2].y = 150;
+	vLetter[3].x = 310;
+	vLetter[3].y = 110;
+	vLetter[4].x = 310;
+	vLetter[4].y = 105;
+	vLetter[5].x = 320;
+	vLetter[5].y = 105;
+	vLetter[6].x = 320;
+	vLetter[6].y = 165;
+	vLetter[7].x = 310;
+	vLetter[7].y = 165;
+	vLetter[8].x = 310;
+	vLetter[8].y = 120;
+	vLetter[9].x = 260;
+	vLetter[9].y = 160;
+	vLetter[10].x = 260;
+	vLetter[10].y = 165;
+	vLetter[11].x = 250;
+	vLetter[11].y = 165;
 
-/*-------------------------------------------------------------------------------*/
-	/*
-	RECT rc1;
-	// Получаем размер клиентской прозрачной части
-	GetClientRect(g_hTransparensy, &rc1);
-	HRGN hRgn = CreateRoundRectRgn(rc1.left, rc1.top, rc1.right, rc1.bottom, 10, 10);
-	HDC hDC1 = GetDC(g_hTransparensy);
-	HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 0));
-	FrameRgn(hDC1, hRgn, hBrush, 1, 1);
-	//SetLayeredWindowAttributes(g_hTransparensy, 0, 100, LWA_ALPHA | LWA_COLORKEY);
-	SetWindowRgn(g_hTransparensy, hRgn ,TRUE);
+	HRGN hStar = CreatePolygonRgn(vLetter, 12, ALTERNATE); // WINDING | // создаём регион с буквой
 
-//	SetLayeredWindowAttributes(g_hStaticForEllipse, 0, 100, LWA_ALPHA | LWA_COLORKEY);
-	*/
-/*--------------------------------------------------------------------------------*/
+	CombineRgn(hResultRGN, hResultRGN, hStar, RGN_OR);	// Вшиваем в регион букву
+	SetWindowRgn(hWnd, hResultRGN , TRUE);	// Полученный регион вешаем на окно
 
 	EndPaint(hWnd, &ps);
 }
