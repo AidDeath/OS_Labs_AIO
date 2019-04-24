@@ -1,32 +1,44 @@
 // LB_04_CLI.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include <iostream>
-#include <fstream>
+
+#include "LB_04_CLI.h"
+
 
 
 int main()
 {
 	using namespace std;
-    cout << "Hello World!\n"; 
-	ofstream write2file;
-	write2file.open("buffer.txt");
-	write2file << "Hello! I am a file record!" << endl;
-	write2file.close();
+	cout << "Work started... \n";
+	ifstream reading("buffer.txt");
+	if (!reading.is_open())
+	{
+		cout << "Unable to read file buffer.txt\n" << "Exit...\n";
+		return(0);
+	}
+	char buf[30];
+	cout << "Reading file... \n";
+	reading >> buf;
+	int x = atoi(buf);
 
+	
+	HINSTANCE hLib = LoadLibrary(TEXT("..\\x64\\Debug\\LB_01_DLL_2.dll"));
+	if (hLib == NULL)
+	{
+		cout << "Library is not loaded... \n";
+		return(0);
+	}
+	else
+	{
+		getHex = (pGetHex)GetProcAddress(hLib, "getHex");
+		cout << "Library loaded...\n";
+	}
 
-	ifstream readfile;
-	readfile.open;
-	readfile.getline();
+	cout << "Lib fn prepared...\n";
+	getHex(x, *buf);
+	cout << "Lib fn executed...\n";
+	TCHAR result[200];
+	wsprintf(result, TEXT("Результат: %s"), buf);
+	cout << "Printing result...\n";
+	cout << result << endl;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
