@@ -45,7 +45,7 @@ LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	break;
 
-	case WM_LBUTTONDOWN:
+/*	case WM_LBUTTONDOWN:
 	{		// Перетаскивание окна за любой участок
 		// ---------------------------------------------------------
 		// Посылаем сообщение окну, чтобы оно думало, что кликнули по его заголовку.
@@ -53,7 +53,7 @@ LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, NULL);
 		break;
 	}
-
+*/
 
 
 
@@ -94,11 +94,11 @@ BOOL Register(HINSTANCE hInst)
 HWND Create(HINSTANCE hInstance, int nCmdShow)
 {
 	DWORD Stl;
-	//	Stl = WS_EX_LAYERED;
-	Stl = WS_OVERLAPPEDWINDOW ^ WS_MAXIMIZEBOX;
+		Stl = WS_OVERLAPPED | WS_BORDER | WS_SYSMENU;
+//	Stl = WS_OVERLAPPEDWINDOW ^ WS_MAXIMIZEBOX;
 	//	Stl = WS_DISABLED;
 
-	HWND hWnd = CreateWindowEx(WS_EX_LAYERED, g_lpszClassName,
+	HWND hWnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TOPMOST, g_lpszClassName,
 		g_lpszAplicationTitle,
 		Stl,
 		200,
@@ -133,12 +133,6 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 {
 	RECT rc;
 	GetClientRect(hWnd, &rc);
-
-	// Скругление углов окна
-	SetWindowRgn(hWnd, CreateRoundRectRgn(0,0,500,250,20,20),TRUE);
-		
-
-
 	g_hEdit = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT, rc.left + 10, rc.top + 10, 150, 20, hWnd, (HMENU)IDC_EDIT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	SetFocus(g_hEdit);
 
@@ -153,6 +147,7 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	g_hStaticResult = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 10, 250, 25, hWnd, (HMENU)IDC_STATIC_RESULT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 
 	g_hStaticForEllipse = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 180, rc.top + 60, 250, 25, hWnd, (HMENU)IDC_STATIC_RESULT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	
 
 	Button_Enable(g_hRadioBin, FALSE);
 	Button_Enable(g_hRadioThree, FALSE);
@@ -259,6 +254,11 @@ void km_OnPaint(HWND hWnd)
 	HDC hDC = BeginPaint(hWnd, &ps);
 	RECT rc;
 	GetClientRect(hWnd, &rc);
+	// Скругление углов окна
+	SetWindowRgn(hWnd, CreateRoundRectRgn(0, 0, 500, 250, 20, 20), TRUE);
+	SetWindowRgn(g_hStaticForEllipse, CreateRoundRectRgn(10, 10, 10, 10, 3, 3),TRUE);
+	
+	SetLayeredWindowAttributes(g_hStaticForEllipse, 0, 100, LWA_ALPHA | LWA_COLORKEY);
 	EndPaint(hWnd, &ps);
 }
 
