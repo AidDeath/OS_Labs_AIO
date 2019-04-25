@@ -51,9 +51,7 @@ HWND g_hCheckBox;
 
 #define IDC_EDIT			40100
 #define IDC_BUTTON_MAIN		40101
-
 #define IDC_STATIC_RESULT	40102
-
 #define IDC_CHECKBOX		40103
 
 
