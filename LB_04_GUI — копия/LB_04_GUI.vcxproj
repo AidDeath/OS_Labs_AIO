@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{A02A00FE-B705-461B-A8FB-EE9D1E998318}</ProjectGuid>
+    <ProjectGuid>{CC420282-700B-4D39-AE23-FC27AD9C05C1}</ProjectGuid>
     <RootNamespace>LB_04_GUI</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>

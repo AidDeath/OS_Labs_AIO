@@ -1,183 +1,199 @@
-// LB_04_GUI.cpp : Defines the entry point for the application.
-//
-
-#include "framework.h"
 #include "LB_04_GUI.h"
 
-#define MAX_LOADSTRING 100
 
-// Global Variables:
-HINSTANCE hInst;                                // current instance
-WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
-WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-
-// Forward declarations of functions included in this code module:
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpszCmdLine, int nCmdShow)
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+	MSG msg;
+	HWND hWnd;
 
-    // TODO: Place code here.
+	if (!Register(hInstance)) return FALSE;
 
-    // Initialize global strings
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_LB04GUI, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+	hWnd = Create(hInstance, nCmdShow);
 
-    // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
-    {
-        return FALSE;
-    }
+	if (hWnd == NULL) return FALSE;
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_LB04GUI));
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return (int)msg.wParam;
+}
 
-    MSG msg;
+LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+		HANDLE_MSG(hWnd, WM_COMMAND, km_OnCommand);				// Комманды
+		HANDLE_MSG(hWnd, WM_CLOSE, km_OnClose);					// Закрытие окна
+		HANDLE_MSG(hWnd, WM_CREATE, km_OnCreate);				// Создание окна
+		HANDLE_MSG(hWnd, WM_PAINT, km_OnPaint);					// Перерысовывание окна
+		HANDLE_MSG(hWnd, WM_DESTROY, km_OnDestroy);				// Разрушение окна
+	}
 
-    // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
+	return DefWindowProc(hWnd, msg, wParam, lParam);
+}
 
-    return (int) msg.wParam;
+
+BOOL Register(HINSTANCE hInst)
+{
+	WNDCLASSEX wc;
+
+	ZeroMemory(&wc, sizeof(WNDCLASSEX));
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.lpszClassName = g_lpszClassName;
+	wc.lpfnWndProc = Pr2_WndProc;
+	wc.style = CS_VREDRAW | CS_HREDRAW;
+	wc.hInstance = hInst;
+	wc.hIcon = LoadIcon(hInst, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(hInst, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW);
+
+	wc.lpszMenuName = NULL;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+
+	if (!RegisterClassEx(&wc))
+	{
+		MessageBox(NULL, TEXT("Ошибка регистрации класса"),
+			TEXT("Ошибка"), MB_OK | MB_ICONERROR);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+HWND Create(HINSTANCE hInstance, int nCmdShow)
+{
+	DWORD Stl;
+	Stl = WS_OVERLAPPEDWINDOW ^ WS_MAXIMIZEBOX;
+
+	HWND hWnd = CreateWindowEx(NULL, g_lpszClassName,
+		g_lpszAplicationTitle,
+		Stl,
+		200,
+		200,
+		350,
+		200,
+		NULL,
+		NULL,
+		hInstance,
+		NULL
+	);
+
+	if (!hWnd)
+	{
+		MessageBox(NULL, TEXT("Окно не создано"),
+			TEXT("Ошибка"), MB_OK | MB_ICONERROR);
+		return NULL;
+	}
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	return hWnd;
 }
 
 
 
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
+// WM_CREATE
+BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 {
-    WNDCLASSEXW wcex;
+	RECT rc;
+	GetClientRect(hWnd, &rc);
 
-    wcex.cbSize = sizeof(WNDCLASSEX);
+	g_hEdit = CreateWindow(TEXT("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT, rc.left + 10, rc.top + 10, 150, 20, hWnd, (HMENU)IDC_EDIT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	SetFocus(g_hEdit);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_LB04GUI));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_LB04GUI);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+	g_hButtonMain = CreateWindow(TEXT("button"), TEXT("OK"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, rc.left + 10, rc.top + 40, 100, 25, hWnd, (HMENU)IDC_BUTTON_MAIN, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	SetFocus(g_hButtonMain);
 
-    return RegisterClassExW(&wcex);
+	g_hStaticResult = CreateWindow(TEXT("static"), TEXT("Результат: 0"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 10, rc.top + 75, 250, 25, hWnd, (HMENU)IDC_STATIC_RESULT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+
+	g_hCheckBox = CreateWindow(TEXT("button"),TEXT("Показывать окно консоли"), WS_VISIBLE | WS_CHILD | BS_CHECKBOX, rc.left + 10, rc.top + 110, 200, 25, hWnd, (HMENU)IDC_CHECKBOX, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	
+
+	return(TRUE);
 }
 
-//
-//   FUNCTION: InitInstance(HINSTANCE, int)
-//
-//   PURPOSE: Saves instance handle and creates main window
-//
-//   COMMENTS:
-//
-//        In this function, we save the instance handle in a global variable and
-//        create and display the main program window.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+// WM_ONPAINT
+void km_OnPaint(HWND hWnd)
 {
-   hInst = hInstance; // Store instance handle in our global variable
+	PAINTSTRUCT ps;
+	HDC hDC = BeginPaint(hWnd, &ps);
+	RECT rc;
+	GetClientRect(hWnd, &rc);
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, 300, 170, nullptr, nullptr, hInstance, nullptr);
-
-   if (!hWnd)
-   {
-      return FALSE;
-   }
-
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
-
-   return TRUE;
+	EndPaint(hWnd, &ps);
 }
 
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE: Processes messages for the main window.
-//
-//  WM_COMMAND  - process the application menu
-//  WM_PAINT    - Paint the main window
-//  WM_DESTROY  - post a quit message and return
-//
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+// WM_ONCLOSE
+void km_OnClose(HWND hWnd)
 {
-    switch (message)
-    {
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-			case WM_CREATE: 
-				CreateWindow(TEXT("button"),hWnd,);
-				break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: Add any drawing code that uses hdc here...
-            EndPaint(hWnd, &ps);
-        }
-        break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
+	DestroyWindow(hWnd);
 }
 
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// WM_DESTROY
+void km_OnDestroy(HWND hWnd)
 {
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
+	PostQuitMessage(0);
 }
+
+// WM_COMMAND
+void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
+{
+
+	switch (id)
+	{
+	case IDC_BUTTON_MAIN:
+	{
+		TCHAR buf[30];
+
+		/*----Запись исходного числа из Edit в файл----*/
+		Edit_GetText(g_hEdit, buf, 30);
+		std::ofstream SetSource("in.txt");
+		SetSource.write(buf, 30);
+		SetSource.close();
+
+		/*----Запуск и ожидание консольного приложения----*/
+		
+			STARTUPINFO ConsStartStruct;
+			CreateProcess(TEXT("LB_04_CLI.exe"),NULL,);
+
+			GetExitCodeProcess(NULL, NULL);
+			
+
+
+
+		
+		/*----Чтение результата из файла и передача в Edit----*/
+		std::ifstream GetResult("out.txt");
+		if (!GetResult.is_open())
+		{
+			MessageBoxA(hWnd, TEXT("Нет файла с результатом!"), TEXT("Ошибка!"), MB_OK);
+		}
+		GetResult >> buf;
+		Static_SetText(g_hStaticResult, buf);
+		
+	}
+	break;
+	case IDC_CHECKBOX:	
+	{
+		BOOL g_Checked = IsDlgButtonChecked(hWnd, IDC_CHECKBOX);
+		if (g_Checked) {
+			CheckDlgButton(hWnd, IDC_CHECKBOX, BST_UNCHECKED);
+		}
+		else {
+			CheckDlgButton(hWnd, IDC_CHECKBOX, BST_CHECKED);
+		}
+	}
+	break;
+	default:
+	{
+		//MessageBox(hWnd, TEXT("Стандартная функция"), buff, MB_OK);
+	}
+	break;
+	}
+}
+
+

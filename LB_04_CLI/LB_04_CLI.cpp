@@ -12,6 +12,7 @@
 int main()
 {
 	using namespace std;
+	SetConsoleTitle(TEXT("Console part"));
 	cout << "Work started... \n";
 	Sleep(200);
 	ifstream reading("in.txt");
