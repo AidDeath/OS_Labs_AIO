@@ -161,13 +161,17 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 			ZeroMemory(&si, sizeof(si));
 			PROCESS_INFORMATION pi;
 			unsigned long ec;
-			BOOL success = 	CreateProcess(TEXT("LB_04_CLI.exe"), NULL, NULL, NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi);
-			if (!success)
+			BOOL g_Checked = IsDlgButtonChecked(hWnd, IDC_CHECKBOX);
+			if (!g_Checked)			// Обрабатываем чекбокс
 			{
-				MessageBox(hWnd, TEXT("error"), TEXT("ERROR"), MB_OK);
-
+				CreateProcess(TEXT("LB_04_CLI.exe"), NULL, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
 			}
-			
+			else
+			{
+				CreateProcess(TEXT("LB_04_CLI.exe"), NULL, NULL, NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi);
+			}
+
+
 			do		// Ждём, пока процесс не закончится
 			{
 				GetExitCodeProcess(pi.hProcess, &ec);
