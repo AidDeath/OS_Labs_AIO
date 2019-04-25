@@ -157,12 +157,22 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 
 		/*----Запуск и ожидание консольного приложения----*/
 		
-			STARTUPINFO ConsStartStruct;
-			CreateProcess(TEXT("LB_04_CLI.exe"),NULL,);
+			STARTUPINFO si;
+			ZeroMemory(&si, sizeof(si));
+			PROCESS_INFORMATION pi;
+			unsigned long ec;
+			BOOL success = 	CreateProcess(TEXT("LB_04_CLI.exe"), NULL, NULL, NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL, &si, &pi);
+			if (!success)
+			{
+				MessageBox(hWnd, TEXT("error"), TEXT("ERROR"), MB_OK);
 
-			GetExitCodeProcess(NULL, NULL);
+			}
 			
-
+			do		// Ждём, пока процесс не закончится
+			{
+				GetExitCodeProcess(pi.hProcess, &ec);
+				Sleep(100);
+			} while (ec == STILL_ACTIVE);
 
 
 		

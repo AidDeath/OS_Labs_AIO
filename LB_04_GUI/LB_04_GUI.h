@@ -7,6 +7,7 @@
 #include "stdio.h"
 #include <iostream>
 #include <fstream>
+#include "processthreadsapi.h"
 
 LRESULT CALLBACK Pr2_WndProc(HWND, UINT, WPARAM, LPARAM);
 /* Регистрация окна */
