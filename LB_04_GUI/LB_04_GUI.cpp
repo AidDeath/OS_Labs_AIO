@@ -148,7 +148,6 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 	case IDC_BUTTON_MAIN:
 	{
 		TCHAR buf[30];
-
 		/*----Запись исходного числа из Edit в файл----*/
 		Edit_GetText(g_hEdit, buf, 30);
 		std::ofstream SetSource("in.txt");
@@ -161,8 +160,8 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 			ZeroMemory(&si, sizeof(si));
 			PROCESS_INFORMATION pi;
 			unsigned long ec;
-			BOOL g_Checked = IsDlgButtonChecked(hWnd, IDC_CHECKBOX);
-			if (!g_Checked)			// Обрабатываем чекбокс
+			BOOL l_Checked = IsDlgButtonChecked(hWnd, IDC_CHECKBOX);
+			if (!l_Checked)			// Обрабатываем чекбокс
 			{
 				CreateProcess(TEXT("LB_04_CLI.exe"), NULL, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
 			}
@@ -193,8 +192,8 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 	break;
 	case IDC_CHECKBOX:	
 	{
-		BOOL g_Checked = IsDlgButtonChecked(hWnd, IDC_CHECKBOX);
-		if (g_Checked) {
+		BOOL l_Checked = IsDlgButtonChecked(hWnd, IDC_CHECKBOX);
+		if (l_Checked) {
 			CheckDlgButton(hWnd, IDC_CHECKBOX, BST_UNCHECKED);
 		}
 		else {
