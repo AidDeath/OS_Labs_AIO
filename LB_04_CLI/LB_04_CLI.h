@@ -6,7 +6,3 @@
 #include <iostream>
 
 
-
-typedef void(*pGetHex)(int x, char&);
-
-pGetHex getHex;

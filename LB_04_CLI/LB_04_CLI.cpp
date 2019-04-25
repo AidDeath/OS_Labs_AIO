@@ -3,6 +3,9 @@
 
 
 #include "LB_04_CLI.h"
+#include "../LB_01_DLL_16/LB_01_DLL_16.h"
+
+#pragma comment(lib,"../x64/Debug/LB_01_DLL_16.lib")
 
 
 
@@ -10,35 +13,44 @@ int main()
 {
 	using namespace std;
 	cout << "Work started... \n";
-	ifstream reading("buffer.txt");
+	Sleep(200);
+	ifstream reading("in.txt");
 	if (!reading.is_open())
 	{
-		cout << "Unable to read file buffer.txt\n" << "Exit...\n";
+		cout << "Unable to read file in.txt\n" << "Exit...\n";
 		return(0);
 	}
 	char buf[30];
 	cout << "Reading file... \n";
+	Sleep(200);
 	reading >> buf;
 	int x = atoi(buf);
 
-	
-	HINSTANCE hLib = LoadLibrary(TEXT("..\\x64\\Debug\\LB_01_DLL_2.dll"));
-	if (hLib == NULL)
+
+	getHex(x, *buf);
+	cout << "Library fn executed...\n";
+	Sleep(200);
+	char result[100];
+	Sleep(200);
+	cout << "Result for " << x << " is " << buf << endl;;
+
+	ofstream writing("out.txt");
+	Sleep(200);
+	cout << "Writing result to file...\n";
+	if (!writing.is_open())
 	{
-		cout << "Library is not loaded... \n";
+		Sleep(200);
+		cout << "Unable to open output file...\n";
 		return(0);
 	}
-	else
-	{
-		getHex = (pGetHex)GetProcAddress(hLib, "getHex");
-		cout << "Library loaded...\n";
-	}
+	writing << buf;
+//	writing.close;
+	
+	Sleep(200);
+	cout << "Result saved to file...\n";
+	Sleep(300);
+	cout << "Exiting...\n";
+	Sleep(100);
 
-	cout << "Lib fn prepared...\n";
-	getHex(x, *buf);
-	cout << "Lib fn executed...\n";
-	TCHAR result[200];
-	wsprintf(result, TEXT("Результат: %s"), buf);
-	cout << "Printing result...\n";
-	cout << result << endl;
+	 return(0);
 }
