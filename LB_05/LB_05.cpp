@@ -74,7 +74,7 @@ HWND Create(HINSTANCE hInstance, int nCmdShow)
 		200,
 		200,
 		500,
-		200,
+		250,
 		NULL,
 		NULL,
 		hInstance,
@@ -118,6 +118,13 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	g_hStaticResult2 = CreateWindow(TEXT("static"), TEXT("speed2"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 170, rc.top + 110, 150, 25, hWnd, (HMENU)IDC_STATIC_RESULT2, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	g_hStaticResult3 = CreateWindow(TEXT("static"), TEXT("speed3"), WS_VISIBLE | WS_CHILD | SS_LEFT, rc.left + 330, rc.top + 110, 150, 25, hWnd, (HMENU)IDC_STATIC_RESULT3, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 
+	
+	g_hBtn1Up = CreateWindow(TEXT("button"), TEXT(">"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, rc.left + 10, rc.top + 150, 25, 25, hWnd, (HMENU)IDC_BTN1UP, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	g_hBtn1Down = CreateWindow(TEXT("button"), TEXT("<"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, rc.left + 35, rc.top + 150, 25, 25, hWnd, (HMENU)IDC_BTN1DOWN, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	g_hBtn2Up = CreateWindow(TEXT("button"), TEXT(">"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, rc.left + 170, rc.top + 150, 25, 25, hWnd, (HMENU)IDC_BTN2UP, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	g_hBtn2Down = CreateWindow(TEXT("button"), TEXT("<"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, rc.left + 195, rc.top + 150, 25, 25, hWnd, (HMENU)IDC_BTN2DOWN, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	g_hBtn3Up = CreateWindow(TEXT("button"), TEXT(">"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, rc.left + 330, rc.top + 150, 25, 25, hWnd, (HMENU)IDC_BTN3UP, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
+	g_hBtn3Down = CreateWindow(TEXT("button"), TEXT("<"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, rc.left + 355, rc.top + 150, 25, 25, hWnd, (HMENU)IDC_BTN3DOWN, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 
 	return TRUE;
 }
@@ -220,6 +227,37 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 			ResumeThread(hThread3);
 			ThreadStatus = TRUE;
 		}
+
+	}
+	break;
+	case IDC_BTN1UP:
+	{
+
+	}
+	break;
+	case IDC_BTN1DOWN:
+	{
+		int i = GetThreadPriority(hThread1);
+		SetThreadPriority(hThread1, --i);
+	}
+	break;
+	case IDC_BTN2UP:
+	{
+
+	}
+	break;
+	case IDC_BTN2DOWN:
+	{
+
+	}
+	break;
+	case IDC_BTN3UP:
+	{
+
+	}
+	break;
+	case IDC_BTN3DOWN:
+	{
 
 	}
 	break;

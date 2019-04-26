@@ -79,6 +79,12 @@ HWND g_hStaticResult1;
 HWND g_hStaticResult2;
 HWND g_hStaticResult3;
 
+HWND g_hBtn1Up;
+HWND g_hBtn1Down;
+HWND g_hBtn2Up;
+HWND g_hBtn2Down;
+HWND g_hBtn3Up;
+HWND g_hBtn3Down;
 
 #define IDC_EDIT1			40100
 #define IDC_EDIT2			40101
@@ -95,7 +101,12 @@ HWND g_hStaticResult3;
 #define IDC_STATIC_RESULT2	40107
 #define IDC_STATIC_RESULT3	40108
 
-
+#define IDC_BTN1UP			40109
+#define IDC_BTN1DOWN		40110
+#define IDC_BTN2UP			40111
+#define IDC_BTN2DOWN		40112
+#define IDC_BTN3UP			40113
+#define IDC_BTN3DOWN		40114
 
 
 
