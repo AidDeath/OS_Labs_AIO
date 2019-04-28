@@ -232,7 +232,8 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 	break;
 	case IDC_BTN1UP:
 	{
-
+		int i = GetThreadPriority(hThread1);
+		SetThreadPriority(hThread1, ++i);
 	}
 	break;
 	case IDC_BTN1DOWN:
@@ -243,22 +244,26 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 	break;
 	case IDC_BTN2UP:
 	{
-
+		int i = GetThreadPriority(hThread2);
+		SetThreadPriority(hThread2, ++i);
 	}
 	break;
 	case IDC_BTN2DOWN:
 	{
-
+		int i = GetThreadPriority(hThread2);
+		SetThreadPriority(hThread2, --i);
 	}
 	break;
 	case IDC_BTN3UP:
 	{
-
+		int i = GetThreadPriority(hThread3);
+		SetThreadPriority(hThread3, ++i);
 	}
 	break;
 	case IDC_BTN3DOWN:
 	{
-
+		int i = GetThreadPriority(hThread3);
+		SetThreadPriority(hThread3, --i);
 	}
 	break;
 	default:
@@ -290,7 +295,7 @@ DWORD WINAPI ThreadProc(PVOID pvParam)   /*—юда передадим параметр, который укаж
 		getBin(x, buf);
 		Edit_SetText(g_hEdit1, buf);
 		Counter1++;
-		Sleep(50);
+		Sleep(1);
 		} while (true);
 	}
 	break;
@@ -303,7 +308,7 @@ DWORD WINAPI ThreadProc(PVOID pvParam)   /*—юда передадим параметр, который укаж
 		wsprintf(buf, TEXT("%s"), temp);
 		Edit_SetText(g_hEdit2, buf);
 		Counter2++;
-		Sleep(50);
+		Sleep(1);
 		} while (true);
 	}
 	break;
@@ -315,7 +320,7 @@ DWORD WINAPI ThreadProc(PVOID pvParam)   /*—юда передадим параметр, который укаж
 		getHex(x, *buf);
 		Edit_SetText(g_hEdit3, buf);
 		Counter3++;
-		Sleep(50);
+		Sleep(1);
 	} while (true);
 	}
 	break;
