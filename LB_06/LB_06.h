@@ -44,6 +44,8 @@ LPCTSTR g_lpszAplicationTitle = TEXT("Заголовок окна");
 LPCTSTR g_lpszDestroyTitle = TEXT("Разрушение название");
 LPCTSTR g_lpszDestroyMessage = TEXT("Произошло разрушение окна WM_DESTROY");
 
+HANDLE hMutex;
+HANDLE hEvent;
 
 #define MAX_BYTES  10000
 

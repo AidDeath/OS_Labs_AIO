@@ -92,6 +92,15 @@ HWND Create(HINSTANCE hInstance, int nCmdShow)
 		return NULL;
 	}
 
+	hMutex = CreateMutex(NULL, true, "MyMutex");
+	DWORD result;
+	result = WaitForSingleObject(hMutex, 0);
+	if (result != WAIT_OBJECT_0)
+	{
+		MessageBox(hWnd, TEXT("Эта программа уже запущена!"), TEXT("Второй запуск"), MB_OK);
+		SendMessage(hWnd, WM_DESTROY, NULL, NULL);
+	}
+
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
@@ -117,7 +126,7 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	g_hStaticResult2 = CreateWindow(TEXT("static"), TEXT("Расчёт 2 потока"), WS_VISIBLE | WS_CHILD | SS_LEFT | WS_DISABLED, rc.left + 10, rc.top + 145, 200, 25, hWnd, (HMENU)IDC_STATIC_RESULT2, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	g_hStaticResult3 = CreateWindow(TEXT("static"), TEXT("Вывод результатов в Edit"), WS_VISIBLE | WS_CHILD | SS_LEFT | WS_DISABLED, rc.left + 10, rc.top + 180, 200, 25, hWnd, (HMENU)IDC_STATIC_RESULT3, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 
-	
+
 
 	return TRUE;
 }
@@ -143,6 +152,8 @@ void km_OnClose(HWND hWnd)
 // WM_DESTROY
 void km_OnDestroy(HWND hWnd)
 {
+	ReleaseMutex(hMutex);
+	CloseHandle(hMutex);
 	PostQuitMessage(0);
 }
 
@@ -195,6 +206,7 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 	case 2:
 	{
 		
+
 		do
 		{
 		WaitForSingleObject(hSem, INFINITE);
@@ -219,7 +231,6 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 
 		ReleaseSemaphore(hSem, 1, NULL);
 
-//		Edit_SetText(g_hEdit1, buf);
 		
 		} while (true);
 
@@ -228,6 +239,7 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 
 	case 16:
 	{
+
 		do
 		{
 			WaitForSingleObject(hSem, INFINITE);
@@ -249,12 +261,12 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 
 
 				Static_Enable(g_hStaticResult3, TRUE);
-
+				ReleaseSemaphore(hSem2, 1, NULL);
 
 			}
 			LeaveCriticalSection(&g_cs);
 			
-
+		
 			ReleaseSemaphore(hSem, 1, NULL);
 		}
 		while (true);
@@ -269,6 +281,9 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 DWORD WINAPI ThreadOut(PVOID pvParam)
 {
 	TCHAR buf[30];
+
+
+
 	do
 	{
 
@@ -276,6 +291,7 @@ DWORD WINAPI ThreadOut(PVOID pvParam)
 		{
 			Edit_SetText(g_hEdit1, Results[ptrRow]);
 			Static_Enable(g_hStaticResult3, FALSE);
+
 
 			
 
