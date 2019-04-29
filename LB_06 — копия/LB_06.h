@@ -84,7 +84,6 @@ HWND g_hButtonMain;
 
 
 
-
 HWND g_hStaticResult1;
 HWND g_hStaticResult2;
 HWND g_hStaticResult3;
@@ -96,9 +95,10 @@ HWND g_hStaticResult3;
 
 
 
-#define IDC_STATIC_RESULT1	40103
-#define IDC_STATIC_RESULT2	40104
-#define IDC_STATIC_RESULT3	40105
+
+#define IDC_STATIC_RESULT1	40102
+#define IDC_STATIC_RESULT2	40103
+#define IDC_STATIC_RESULT3	40104
 
 
 

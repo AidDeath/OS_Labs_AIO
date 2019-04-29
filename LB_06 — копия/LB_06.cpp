@@ -122,7 +122,6 @@ BOOL km_OnCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	g_hButtonMain = CreateWindow(TEXT("button"), TEXT("START"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, rc.left + 10, rc.top + 70, 100, 25, hWnd, (HMENU)IDC_BUTTON_MAIN, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	SetFocus(g_hButtonMain);
 
-
 	g_hStaticResult1 = CreateWindow(TEXT("static"), TEXT("Расчёт 1 потока"), WS_VISIBLE | WS_CHILD | SS_LEFT | WS_DISABLED, rc.left + 10, rc.top + 110, 200, 25, hWnd, (HMENU)IDC_STATIC_RESULT1, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	g_hStaticResult2 = CreateWindow(TEXT("static"), TEXT("Расчёт 2 потока"), WS_VISIBLE | WS_CHILD | SS_LEFT | WS_DISABLED, rc.left + 10, rc.top + 145, 200, 25, hWnd, (HMENU)IDC_STATIC_RESULT2, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
 	g_hStaticResult3 = CreateWindow(TEXT("static"), TEXT("Вывод результатов в Edit"), WS_VISIBLE | WS_CHILD | SS_LEFT | WS_DISABLED, rc.left + 10, rc.top + 180, 200, 25, hWnd, (HMENU)IDC_STATIC_RESULT3, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), NULL);
@@ -174,18 +173,15 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 		InitializeCriticalSection(&g_cs);
 
 			hSem = CreateSemaphore(NULL, 1, 1, "For calc");
-			hSem2 = CreateSemaphore(NULL, 1, 1, "For output");
-			
+		//	hSem2 = CreateSemaphore(NULL, 30, 30, "For output");
 
 			hThread1 = CreateThread(NULL, 0L, ThreadProc, &param1, 0L, &Thread1_ID);
 			hThread3 = CreateThread(NULL, 0L, ThreadProc, &param3, 0L, &Thread3_ID);
-			hThread4 = CreateThread(NULL, 0L, ThreadOut, NULL, CREATE_SUSPENDED, &Thread4_ID);
+			hThread4 = CreateThread(NULL, 0L, ThreadOut, NULL, 0L, &Thread4_ID);
 			Button_Enable(g_hButtonMain, FALSE);
 		
 	}
 	break;
-	
-
 	
 	default:
 	{
@@ -209,7 +205,7 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 	
 	case 2:
 	{
-
+		
 
 		do
 		{
@@ -220,8 +216,7 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 		getBin(x, buf);
 		Sleep(200);
 		Static_Enable(g_hStaticResult1, FALSE);
-		ReleaseSemaphore(hSem, 1, NULL);
-
+		
 		EnterCriticalSection(&g_cs);
 		if (ptrRow < 30)		// Помещение результатов в массив, в крит. секции
 		{
@@ -230,15 +225,11 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 		else
 		{
 			Static_Enable(g_hStaticResult3, TRUE);
-			//ReleaseSemaphore(hSem2, 1, NULL);
-			ResumeThread(hThread4);
-
-			SuspendThread(hThread3);
-			LeaveCriticalSection(&g_cs);
-			SuspendThread(hThread1);
-
 		}
 		LeaveCriticalSection(&g_cs);
+
+		ReleaseSemaphore(hSem, 1, NULL);
+
 		
 		} while (true);
 
@@ -247,7 +238,7 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 
 	case 16:
 	{
-	
+
 		do
 		{
 			WaitForSingleObject(hSem, INFINITE);
@@ -257,7 +248,7 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 			getHex(x, *buf);
 			Sleep(200);
 			Static_Enable(g_hStaticResult2, FALSE);
-			ReleaseSemaphore(hSem, 1, NULL);
+
 
 			EnterCriticalSection(&g_cs);
 			if (ptrRow < 30)
@@ -268,19 +259,13 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 			{
 
 				Static_Enable(g_hStaticResult3, TRUE);
-				//ReleaseSemaphore(hSem2, 1, NULL);
-				ResumeThread(hThread4);
-
-
-				SuspendThread(hThread1);
-				LeaveCriticalSection(&g_cs);
-				SuspendThread(hThread3);
+				ReleaseSemaphore(hSem2, 1, NULL);
 
 			}
 			LeaveCriticalSection(&g_cs);
 			
 		
-
+			ReleaseSemaphore(hSem, 1, NULL);
 		}
 		while (true);
 	}
@@ -296,23 +281,12 @@ DWORD WINAPI ThreadOut(PVOID pvParam)
 	TCHAR buf[30];
 	do
 	{
-	//	WaitForSingleObject(hSem2, INFINITE);
-		Static_Enable(g_hStaticResult1, FALSE);
-		Static_Enable(g_hStaticResult2, FALSE);
 
 		if (ptrRow == 0)
 		{
 			Edit_SetText(g_hEdit1, Results[ptrRow]);
 			Static_Enable(g_hStaticResult3, FALSE);
-
-			
-
-			ResumeThread(hThread1);
-			ResumeThread(hThread3);
-			
-			SuspendThread(hThread4);
-
- 		}
+		}
 		if (ptrRow > 0)
 		{
 			Edit_SetText(g_hEdit1, Results[ptrRow--]);
