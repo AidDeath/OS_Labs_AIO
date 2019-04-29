@@ -143,19 +143,6 @@ void km_OnPaint(HWND hWnd)
 // WM_ONCLOSE
 void km_OnClose(HWND hWnd)
 {
-/*	if (ThreadStatus)
-	{
-		TerminateThread(hThread1, 1);
-		CloseHandle(hThread1);
-		TerminateThread(hThread2, 1);
-		CloseHandle(hThread2);
-		TerminateThread(hThread3, 1);
-		CloseHandle(hThread3);
-		TerminateThread(hThread4, 1);
-		CloseHandle(hThread4);
-
-	}
-	*/
 	DestroyWindow(hWnd);
 }
 
