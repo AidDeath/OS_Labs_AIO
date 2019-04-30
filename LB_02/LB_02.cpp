@@ -308,7 +308,7 @@ BOOL km_OnChildCreate(HWND hWnd, LPCREATESTRUCT lpszCreateStruct)
 	WIN32_FIND_DATA  fd;
 
 	// находим первый файл
-	hFindFile = FindFirstFile(TEXT("..\\x64\\Debug\\*.dll"), &fd);
+	hFindFile = FindFirstFile(TEXT(".\\*.dll"), &fd);
 
 	if (INVALID_HANDLE_VALUE == hFindFile)
 	{
