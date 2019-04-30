@@ -148,6 +148,7 @@ void km_OnPaint(HWND hWnd)
 void km_OnClose(HWND hWnd)
 {
 	DestroyWindow(hWnd);
+	SetEvent(hEvent);
 }
 
 // WM_DESTROY
@@ -175,7 +176,7 @@ void km_OnCommand(HWND hWnd, int id, HWND hwndCtl, UINT codeNotify)
 
 			hSem = CreateSemaphore(NULL, 1, 1, "For calc");
 			hSem2 = CreateSemaphore(NULL, 1, 1, "For output");
-			
+			hEvent = CreateEvent(NULL, TRUE, TRUE, "Closing");
 
 			hThread1 = CreateThread(NULL, 0L, ThreadProc, &param1, 0L, &Thread1_ID);
 			hThread3 = CreateThread(NULL, 0L, ThreadProc, &param3, 0L, &Thread3_ID);
@@ -222,6 +223,12 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 		Static_Enable(g_hStaticResult1, FALSE);
 		ReleaseSemaphore(hSem, 1, NULL);
 
+		DWORD Time2Die = WaitForSingleObject(hEvent, 0);
+		if (Time2Die != WAIT_OBJECT_0)
+		{
+			break;
+		}
+
 		EnterCriticalSection(&g_cs);
 		if (ptrRow < 30)		// Помещение результатов в массив, в крит. секции
 		{
@@ -258,6 +265,12 @@ DWORD WINAPI ThreadProc(PVOID pvParam)
 			Sleep(200);
 			Static_Enable(g_hStaticResult2, FALSE);
 			ReleaseSemaphore(hSem, 1, NULL);
+
+			DWORD Time2Die = WaitForSingleObject(hEvent, 0);
+			if (Time2Die != WAIT_OBJECT_0)
+			{
+				break;
+			}
 
 			EnterCriticalSection(&g_cs);
 			if (ptrRow < 30)
@@ -318,6 +331,12 @@ DWORD WINAPI ThreadOut(PVOID pvParam)
 			Edit_SetText(g_hEdit1, Results[ptrRow--]);
 		}
 		
+
+		DWORD Time2Die = WaitForSingleObject(hEvent, 0);
+		if (Time2Die != WAIT_OBJECT_0)
+		{
+			break;
+		}
 
 	Sleep(200);
 
