@@ -95,6 +95,7 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 			case IDM_FILE_CLOSE:
 			{
+			//	Add active child closing
 			}
 			break;
 			case IDM_WINDOW_CASCADE:
