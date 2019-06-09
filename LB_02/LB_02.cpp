@@ -96,6 +96,29 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			case IDM_FILE_CLOSE:
 			{
 			//	Add active child closing
+			//	g_hMDIActiveWnd   - handle of active window
+
+				int msgboxID = MessageBox(
+					hWnd,
+					TEXT("Закрыть все MDI?"),
+					TEXT("Закрыть все MDI"),
+					MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON2
+				);
+
+				switch (msgboxID)
+				{
+				case IDOK:
+				{
+					DestroyWindow(g_hMDIActiveWnd);
+					g_CountMDI--;
+				}
+				break;
+				case IDCANCEL:
+					break;
+				}
+
+				//DestroyWindow(g_hMDIActiveWnd);
+				//g_CountMDI--;
 			}
 			break;
 			case IDM_WINDOW_CASCADE:
